@@ -3,6 +3,8 @@ mod function;
 mod fraction;
 mod limit;
 mod derivative;
+mod matrix;
+
 use fraction::Fraction;
 use limit::Limit;
 use derivative::Derivative;

@@ -1,5 +1,5 @@
 #[derive(Debug)]
-struct Vector {
+pub(crate) struct Vector {
     components: Vec<f64>,
 }
 
