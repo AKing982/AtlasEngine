@@ -3,18 +3,6 @@ struct Vector {
     components: Vec<f64>,
 }
 
-pub fn basis(dimension: i32, position: i32) -> Vector {
-    if dimension <= 0 {
-        panic!("Dimension must be positive");
-    }
-    if dimension < 0 || position >= dimension {
-        panic!("Position must be between 0 and and dimension 1")
-    }
-    let mut v = Vector::zeros(dimension as usize);
-    v.components[position as usize] = 1.0;
-    v
-}
-
 impl Vector {
     pub fn dimension(&self) -> usize {
         self.components.len()
@@ -52,6 +40,18 @@ impl Vector {
             .map(|(a,b)| a - b)
             .collect();
         Vector::new(difference_components)
+    }
+
+    pub fn basis(dimension: i32, position: i32) -> Vector {
+        if dimension <= 0 {
+            panic!("Dimension must be positive");
+        }
+        if dimension < 0 || position >= dimension {
+            panic!("Position must be between 0 and and dimension 1")
+        }
+        let mut v = Vector::zeros(dimension as usize);
+        v.components[position as usize] = 1.0;
+        v
     }
 
     pub fn scalar_multiply(&self, scalar: f64) -> Vector {
