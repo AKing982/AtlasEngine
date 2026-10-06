@@ -1,0 +1,187 @@
+use crate::vector::Vector;
+
+#[derive(Debug, Clone)]
+struct Matrix {
+    rows: usize,
+    cols: usize,
+    matrix: Vec<usize>,
+}
+
+impl Matrix {
+
+    pub(crate) fn new(cols: usize, rows: usize, fill: i32) -> Self {
+        Self {
+            matrix: vec![fill; rows * cols],
+            rows,
+            cols,
+        }
+    }
+
+    pub(crate) fn get(&self, row: usize, col: usize) -> usize {
+        self.matrix[row * self.cols + col]
+    }
+
+    pub(crate) fn rows(&self) -> usize{
+        self.matrix.len()
+    }
+
+    pub(crate) fn cols(&self) -> usize {
+        self.matrix.first().map_or(0, |r| r.len())
+    }
+
+    pub(crate) fn size(&self) -> (usize, usize) {
+        (self.row, self.col)
+    }
+    
+    pub(crate) fn subtract(&self, other: &Self) -> Self {
+        if self.size() != other.size(){
+            panic!("Cannot perform matrix subtraction on matrices of different sizes");
+        }
+        let subtracted_data: Vec<usize> = self.matrix
+            .iter()
+            .zip(other.matrix.iter())
+            .map(|(a, b)| a - b)
+            .collect();
+        Self {
+            matrix: subtracted_data,
+            rows: self.rows,
+            cols: self.cols,
+        }
+    }
+ 
+    pub(crate) fn add(&self, other: &Self) -> Self {
+        if self.size() != other.size(){
+            panic!("Cannot perform matrix addition on matrices of different sizes");
+        }
+        let a_rows = self.matrix.rows;
+        let b_rows = other.matrix.rows;
+
+        // sum each row component-wise
+        let summed_rows: Vec<usize> = self.matrix
+            .iter()
+            .zip(other.matrix.iter())
+            .map(|(a,b)| a + b)
+            .collect();
+
+        // reconstruct a new matrix with the new added components for each entry
+        Self {
+            matrix: summed_rows,
+            rows: self.rows,
+            cols: self.cols,
+        }
+    }
+
+    pub(crate) fn diagonal(&self, isLeft: bool) -> usize {
+        if self.matrix.row != self.matrix.col || self.matrix.row < 2{
+            panic!("Cannot perform diagonal operation on square matrix of dimension less than 2");
+        }
+        let rows = self.matrix.len();
+        let cols = self.matrix[0].len();
+        let mut product: usize = 1;
+        if isLeft {
+            for i in 0..rows {
+                product *= self.matrix[i][i]
+            }
+        }else{
+            for i in 0..rows {
+                product *= self.matrix[i][cols - 1 - i];
+            }
+        }
+        product
+    }
+
+    pub(crate) fn determinant(&self) -> usize {
+        let n = self.size();
+        if n != self.matrix[0].len() {
+            panic!("Unable to perform determinant operation on non-square matrix");
+        }
+        let mut det: usize = 1;
+        if n == 2 {
+            let main_diagonal = self.diagonal(true);
+            let anti_diagonal = self.diagonal(false);
+            return main_diagonal - anti_diagonal;
+        }
+        else {
+            // Write out code that uses the cofactor expansion for the general n x n case.
+
+        }
+        panic!("Determinant calculation only implemented for 2x2 matrices");
+    }
+
+  
+    pub(crate) fn multiply(&self, other: &Self) -> Self {
+        if self.cols != other.rows {
+            panic!("Matrix multiplication not possible: left.cols ({}) != right.rows ({})", self.cols, other.rows);
+        }
+        let mut result = vec![0; self.rows * other.cols];
+        for i in 0..self.rows {
+            for j in 0..other.cols {
+                let mut sum = 0;
+                for k in 0..self.cols {
+                    let a = self.matrix[i * self.cols + k];
+                    let b = other.matrix[k * other.cols + j];
+                    sum += a * b;
+                }
+                result[i * other.cols + j] = sum;
+            }
+        }
+        Self {
+            rows: self.rows,
+            cols: other.cols,
+            matrix: result,
+        }
+    }
+
+    pub(crate) fn inverse(&self) -> Self {
+        let n = self.size();
+        if n != self.matrix[0].len(){
+            panic!("Cannot perform inverse operation on a non square matrix");
+        }
+        //TODO: Create Determinant implementation to finish this
+    }
+
+    pub(crate) fn eye(dim: usize) -> Self {
+        if dim < 0 || dim == 0{
+            panic!("The dimension must be greater than zero");
+        }
+        let rows = dim;
+        let cols = dim;
+        let mut identity = Vec::with_capacity(dim * dim);
+        for i in rows {
+            for j in cols {
+                if i == j {
+                    identity.push(1);
+                }else{
+                    identity.push(0);
+                }
+            }
+        }
+        Self {
+            col: cols,
+            row: rows,
+            matrix: identity
+        }
+    }
+    
+    pub(crate) fn print_size(&self) {
+        println!("({}, {})", self.row, self.col);
+    }
+
+    pub(crate) fn print(&self) {
+        print!("[");
+        for i in 0..self.row {
+            print!("[");
+            for j in 0..self.col {
+                print!("{}", self.matrix[i * self.col + j]);
+                if j < self.col - 1 {
+                    print!(", ");
+                }
+            }
+            print!("]");
+            if i < self.row - 1 {
+                println!(",");
+            }
+        }
+        println!("]");
+    }
+}
