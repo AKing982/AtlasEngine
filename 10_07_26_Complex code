@@ -1,0 +1,57 @@
+struct Complex {
+    real: f64,
+    imaginary: f64,
+}
+
+#[derive(Debug, Clone)]
+impl Complex {
+    pub(crate) fn new(real: f64, imaginary: f64) -> Self {
+         Self {
+            real,
+            imaginary
+         }
+    }
+
+    pub(crate) fn magnitude(&self) -> f64 {
+        (self.real.powf(2.0) + self.imag.powf(2.0)).sqrt();
+    }
+
+    pub(crate) fn conjugate(&self) -> Self {
+        Self {
+            real: self.real,
+            imaginary: -1.0 * self.imaginary,
+        }
+    }
+
+    pub(crate) fn add(&self, other: &Self) -> Self {
+        Self {
+            real: self.real + other.real,
+            imaginary: self.imaginary + other.imaginary,
+        }
+    }
+    
+    pub(crate) fn subtract(&self, other: &Self) -> Self {
+        Self {
+            real: self.real - other.real,
+            imaginary: self.imaginary - other.imaginary,
+        }
+    }
+
+    pub(crate) fn multiply(&self, other: &Self) -> Self {
+        let a = self.real;
+        let b = self.imaginary;
+        let c = other.real;
+        let d = other.imaginary;
+        Self {
+            real: a*c - b*d,
+            imaginary: a*d + b*c
+        }
+    }
+
+    pub(crate) fn unit(&self) -> Self {
+        Self {
+            real: 1,
+            imaginary: 1,
+        }
+    }
+}
