@@ -33,6 +33,16 @@ impl Matrix {
         (self.rows, self.cols)
     }
 
+    pub(crate) fn swap(&self, row: usize, col: usize, element: f64) -> Self {
+        let mut modified = self.matrix.clone();
+        modified[row][col] = element;
+        Self {
+            matrix: modified,
+            cols: self.cols,
+            rows: self.rows,
+        }
+    }
+
     pub(crate) fn subtract(&self, other: &Self) -> Self {
         if self.size() != other.size(){
             panic!("Cannot perform matrix subtraction on matrices of different sizes");
@@ -78,6 +88,19 @@ impl Matrix {
             rows: self.rows,
             cols: self.cols,
         }
+    }
+
+    pub(crate) fn trace(&self) -> f64 {
+        let rows = self.matrix.len();
+        let cols = self.matrix[0].len();
+        if rows != cols {
+            panic!("Cannot perform the trace on a non square matrix");
+        }
+        let mut sum = 0.0;
+        for i in 0..rows {
+            sum += self.matrix[i][i];
+        }
+        sum
     }
 
     pub(crate) fn diagonal(&self, is_left: bool) -> f64 {
