@@ -1,0 +1,24 @@
+use crate::function::FunctionExpr;
+
+struct Summation {
+    i: i32,
+    n: i32,
+    seq: FunctionExpr,
+}
+
+impl Summation {
+
+    pub(crate) fn new(i: i32, n: i32, seq: &str) -> Self {
+        Self {
+            i,
+            n,
+            seq: FunctionExpr::new(seq),
+        }
+    }
+
+    pub(crate) fn eval(i: i32, n: i32, seq: &str) -> f64 {
+        let expr = FunctionExpr::new(seq);
+
+    }
+
+}

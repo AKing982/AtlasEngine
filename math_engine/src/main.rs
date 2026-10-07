@@ -4,6 +4,10 @@ mod fraction;
 mod limit;
 mod derivative;
 mod matrix;
+mod Summation;
+mod DefiniteIntegral;
+mod Complex;
+mod Antiderivative;
 
 use fraction::Fraction;
 use limit::Limit;
