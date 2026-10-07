@@ -219,6 +219,47 @@ impl Matrix {
         }
     }
 
+    pub(crate) fn is_square(&self) -> bool {
+        return self.rows == self.cols
+    }
+
+    pub(crate) fn transpose(&self) -> Self {
+        let size = self.size();
+        let rows = size.0;
+        let cols = size.1;
+        if (rows < 0 && cols < 0) || (rows == 1 && cols == 1) {
+            panic!("Unable to perform transpose operation on matrix of dimension less than zero or equal to one");
+        }
+
+        for i in 0..rows {
+            for j in 0..cols {
+
+            }
+        }
+
+        if rows == 2 {
+            let a = self.matrix[0][0];
+            let b = self.matrix[0][1];
+            let c = self.matrix[1][0];
+            let d = self.matrix[0][0];
+            let transposed_matrix: Vec<Vec<f64>> = vec![vec![a, c,], vec![b, d],];
+            return Self {
+                matrix: transposed_matrix,
+                rows: self.rows,
+                cols: self.cols,
+            }
+        }
+        panic!("No implementation for transpose for dimensions n > 2 yet");
+    }
+
+    pub(crate) fn is_orthogonal(&self) -> bool {
+        if !self.is_square() {
+            panic!("Unable to perform operation on a non square matrix");
+        }
+
+
+    }
+
     pub(crate) fn print_size(&self) {
         println!("({}, {})", self.rows, self.cols);
     }
