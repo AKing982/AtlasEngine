@@ -8,6 +8,7 @@ mod Summation;
 mod DefiniteIntegral;
 mod Complex;
 mod Antiderivative;
+mod expr;
 
 use fraction::Fraction;
 use limit::Limit;

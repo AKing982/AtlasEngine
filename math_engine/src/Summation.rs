@@ -16,9 +16,13 @@ impl Summation {
         }
     }
 
-    pub(crate) fn eval(i: i32, n: i32, seq: &str) -> f64 {
+    pub(crate) fn eval(&self, seq: &str) -> f64 {
         let expr = FunctionExpr::new(seq);
-
+        let mut sum = 0.0;
+        for i in self.i..=self.n {
+            sum += expr.eval(i as f64)
+        }
+        sum
     }
 
 }

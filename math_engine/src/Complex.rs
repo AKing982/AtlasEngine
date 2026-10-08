@@ -12,7 +12,7 @@ impl Complex {
     }
 
     pub(crate) fn magnitude(&self) -> f64 {
-        (self.real.powf(2.0) + self.imag.powf(2.0)).sqrt();
+        (self.real.powf(2.0) + self.imaginary.powf(2.0)).sqrt()
     }
 
     pub(crate) fn conjugate(&self) -> Self {
@@ -49,8 +49,8 @@ impl Complex {
 
     pub(crate) fn unit(&self) -> Self {
         Self {
-            real: 1,
-            imaginary: 1,
+            real: 1.0,
+            imaginary: 1.0,
         }
     }
 }

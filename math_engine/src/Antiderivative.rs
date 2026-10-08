@@ -2,6 +2,12 @@ use std::f64::consts::E;
 struct Antiderivative;
 
 impl Antiderivative {
+
+    pub(crate) fn integrate(expr: &str) -> Option<String>
+    {
+
+    }
+
     pub(crate) fn power_rule(k: f64, n: f64, x: f64) -> f64 {
         if n == -1.0 {
             return k * x.abs().ln();
@@ -14,7 +20,7 @@ impl Antiderivative {
     }
 
     pub(crate) fn constant(c: f64) -> String {
-        "c*x + C".to_string()
+        format!("{}*x + C", c)
     }
 
     pub(crate) fn constant_eval(c: f64, x:f64) -> f64 {
@@ -37,7 +43,7 @@ impl Antiderivative {
         if k == 1.0 {
             -x.cos()
         }
-        else if k == 2{
+        else if k == 2.0{
             return x / 2.0 - (2.0 * x).sin() / 4.0;
         }else {
             let term1 = -(x.sin().powf(k - 1.0) * x.cos()) / k;
@@ -47,7 +53,7 @@ impl Antiderivative {
 
     pub(crate) fn sin(k: f64) -> String {
         if k == 1.0 {
-            return "-cos(x) + C".to_string();
+            "-cos(x) + C".to_string()
         }else if k == 2.0 {
             return "(x / 2) - (sin(2x) / 4) + C".to_string();
         }else {
@@ -73,7 +79,7 @@ impl Antiderivative {
 
     pub(crate) fn secant_eval(x: f64, k: f64) -> f64 {
         if k == 1.0 {
-            return (1.0 / x.cos()).abs().ln() + x.tan().abs().ln();
+            (1.0 / x.cos()).abs().ln() + x.tan().abs().ln()
         }else if k == 2.0 {
             return x.tan();
         }else {
@@ -85,7 +91,7 @@ impl Antiderivative {
 
     pub(crate) fn tan(k: f64) -> String {
         if k == 1.0 {
-            return "-ln|cos(x)| + C".to_string();
+            "-ln|cos(x)| + C".to_string()
         }else if k == 2.0 {
             return "tan(x) - x + C".to_string();
         }else {
@@ -109,7 +115,7 @@ impl Antiderivative {
     }
 
     pub(crate) fn ln() -> String {
-        return "x*ln(x)-x + C".to_string()
+        "x*ln(x)-x + C".to_string()
     }
 
     pub(crate) fn ln_eval(x: f64) -> f64 {
