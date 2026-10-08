@@ -1,0 +1,298 @@
+use crate::vector::Vector;
+
+#[derive(Debug, Clone)]
+struct Matrix {
+    rows: usize,
+    cols: usize,
+    matrix: Vec<usize>,
+}
+
+impl Matrix {
+
+    pub(crate) fn new(cols: usize, rows: usize, fill: f64) -> Self {
+        Self {
+            matrix: vec![fill; rows * cols],
+            rows,
+            cols,
+        }
+    }
+
+    pub(crate) fn index(&self, row: usize, col: usize) -> Option<usize> {
+        if row < self.rows && col < self.cols {
+            Some(row * self.cols + col)
+        }else {
+            None
+        }
+    }
+
+    pub(crate) fn get(&self, row: usize, col: usize) -> f64 {
+        self.index(row, col)
+            .map(|idx| self.matrix[idx])
+    }
+
+    pub(crate) fn rows(&self) -> usize{
+        self.rows
+    }
+
+    pub(crate) fn cols(&self) -> usize {
+        self.cols
+    }
+
+    pub(crate) fn size(&self) -> (usize, usize) {
+        (self.rows, self.cols)
+    }
+
+    pub(crate) fn swap(&self, row: usize, col: usize, element: f64) -> Option<Self> {
+        if let Some(idx) = self.index(row, col) {
+            let mut modified = self.matrix.clone();
+            modified[idx] = element;
+            Some(Self {
+                matrix: modified,
+                cols: self.cols,
+                rows: self.rows,
+            })
+        }else {
+            None
+        }
+        
+    }
+
+    pub(crate) fn subtract(&self, other: &Self) -> Result<Self, String> {
+        if self.size() != other.size(){
+            return Err("Cannot perform matrix subtraction on matrices of different sizes".into());
+        }
+
+        let subtracted_data: Vec<Vec<f64>> = self.matrix
+            .iter()
+            .zip(other.matrix.iter())
+            .map(|(row_a, row_b)| {
+                row_a.iter()
+                    .zip(row_b.iter())
+                    .map(|(&a, &b)| a - b)
+                    .collect()
+            })
+            .collect();
+        Ok(Self {
+            matrix: subtracted_data,
+            rows: self.rows,
+            cols: self.cols,
+        })
+    }
+
+    pub(crate) fn add(&self, other: &Self) -> Result<Self, String> {
+        if self.size() != other.size() {
+            return Err("Cannot perform matrix addition on matrices of different sizes".into());
+        }
+
+        // sum each row component-wise
+        let summed_rows: Vec<Vec<f64>> = self.matrix
+            .iter()
+            .zip(other.matrix.iter())
+            .map(|(row_a,row_b)|{
+                row_a.iter()
+                    .zip(row_b.iter())
+                    .map(|(&a, &b)| a + b)
+                    .collect()
+            })
+            .collect();
+
+        // reconstruct a new matrix with the new added components for each entry
+        Ok(Self {
+            matrix: summed_rows,
+            rows: self.rows,
+            cols: self.cols,
+        })
+    }
+
+    pub(crate) fn trace(&self) -> Result<f64, String> {
+        let rows = self.rows
+        let cols = self.cols
+        if rows != cols {
+            Err("Cannot perform the trace on a non square matrix".into());
+        }
+        let mut sum = 0.0;
+        for i in 0..rows {
+            let idx = i * cols + i;
+            sum += self.matrix[idx];
+        }
+        Ok(sum)
+    }
+
+    pub(crate) fn diagonal(&self, is_left: bool) -> Result<f64, String> {
+        let rows = self.rows
+        let cols = self.cols
+        if rows != cols || rows < 2{
+            return Err("Cannot perform diagonal operation on square matrix of dimension less than 2".into());
+        }
+        let mut product: f64 = 1.0;
+        if is_left {
+            for i in 0..rows {
+                let idx = i * cols + i;
+                product *= self.matrix[idx];
+            }
+        }else{
+            for i in 0..rows {
+                let idx = i * cols + (cols - i - 1);
+                product *= self.matrix[idx];
+            }
+        }
+        Ok(product)
+    }
+
+    pub(crate) fn determinant(&self) -> Result<f64,String> {
+        let rows = self.rows
+        let cols = self.cols
+        if rows != cols {
+            return Err("Unable to perform determinant operation on non-square matrix".into());
+        }
+        if rows == 2 {
+            let main_diagonal = self.diagonal(true);
+            let anti_diagonal = self.diagonal(false);
+            return Ok(main_diagonal - anti_diagonal);
+        }
+        else {
+            //TODO: Write out code that uses the cofactor expansion for the general n x n case.
+
+        }
+        return Err("Determinant calculation only implemented for 2x2 matrices".into());
+    }
+
+
+    pub(crate) fn multiply(&self, other: &Self) -> Result<Self, String> {
+        if self.cols != other.rows {
+            return Err(format!(
+                "Matrix multiplication not possible: left.cols ({}) != right.rows ({})",
+                self.cols, other.rows
+            ));
+        }
+        let mut result = vec![0.0; self.rows * other.cols];
+        for i in 0..self.rows {
+            for j in 0..other.cols {
+                let mut sum = 0.0;
+                for k in 0..self.cols {
+                    let a_idx = i * self.cols + k;
+                    let b_idx = k * other.cols + j;
+                    sum += self.matrix[a_idx] * other.matrix[b_idx];
+                }
+                result[i * other.cols + j] = sum;
+            }
+        }
+        Ok(Self {
+            rows: self.rows,
+            cols: other.cols,
+            matrix: result,
+        })
+    }
+
+    pub(crate) fn inverse(&self) -> Result<Self, String> {
+        let rows = self.size().0;
+        let cols = self.size().1;
+        if rows != cols {
+            return Err("Unable to perform inversion of a non square matrix".into());
+        }
+
+        if rows == 2 {
+            // first get the determinant
+            let determinant = self.determinant();
+            if determinant == 0.0 {
+                return Err("Determinant is zero. Cannot calculate the inverse matrix.".into());
+            }
+            let one_over_determinant = (1.0 / determinant);
+            let a = self.matrix[0][0];
+            let b = self.matrix[0][1];
+            let c = self.matrix[1][0];
+            let d = self.matrix[1][1];
+            let inverse_matrix = vec![vec![d * one_over_determinant, -b * one_over_determinant,
+            ],
+                                      vec![-c * one_over_determinant, a * one_over_determinant, ], ];
+            return Ok(Self {
+                rows: 2,
+                cols: 2,
+                matrix: inverse_matrix,
+            });
+        }
+        Err("No implementation for n x n matrices greater than n = 2 yet.".into());
+    }
+
+    pub(crate) fn eye(dim: usize) -> Result<Self, String> {
+        if dim < 0 || dim == 0{
+            return Err("The dimension must be greater than zero".into());
+        }
+        let rows = dim;
+        let cols = dim;
+        let mut identity: Vec<Vec<f64>> = Vec::with_capacity(rows);
+        for i in 0..rows {
+            let mut row = Vec::with_capacity(cols);
+            for j in 0..cols {
+                if i == j {
+                    row.push(1.0);
+                }else{
+                    row.push(0.0);
+                }
+            }
+            identity.push(row);
+        }
+        Ok(Self {
+            cols,
+            rows,
+            matrix: identity
+        })
+    }
+
+    pub(crate) fn is_square(&self) -> bool {
+        return self.rows == self.cols
+    }
+
+    pub(crate) fn transpose(&self) -> Result<Self, String> {
+        let size = self.size();
+        let rows = size.0;
+        let cols = size.1;
+        if (rows < 0 && cols < 0) || (rows == 1 && cols == 1) {
+            return Err("Unable to perform transpose operation on matrix of dimension less than zero or equal to one".into());
+        }
+
+        let mut transposed_matrix = vec![0.0; rows * cols];
+        for r in 0..rows {
+            for c in 0..cols {
+                let src_index = r * cols + c;
+                let dst_indx = c * rows + r;
+                transposed_matrix[dst_indx] = self.matrix[src_index];
+            }
+        }
+        return Ok(Self {
+            matrix: transposed_matrix,
+            rows: self.rows,
+            cols: self.cols,
+        })
+    }
+
+    pub(crate) fn is_orthogonal(&self) -> bool {
+        if !self.is_square() {
+            panic!("Unable to perform operation on a non square matrix");
+        }
+
+
+    }
+
+    pub(crate) fn print_size(&self) {
+        println!("({}, {})", self.rows, self.cols);
+    }
+
+    pub(crate) fn print(&self) {
+        print!("[");
+        for i in 0..self.rows {
+            print!("[");
+            for j in 0..self.cols {
+                print!("{}", self.matrix[i][j]);
+                if j < self.cols - 1 {
+                    print!(", ");
+                }
+            }
+            print!("]");
+            if i < self.rows - 1 {
+                println!(",");
+            }
+        }
+        println!("]");
+    }
+}
