@@ -24,12 +24,25 @@ mod token_type;
 mod literal;
 
 use crate::scanner::Scanner;
+use std::env;
+use std::process;
 
 fn main() {
-    let source = String::from(".456");
-    let mut scanner = Scanner::new(source);
-    let tokens = scanner.scan_tokens();
-    for token in tokens {
-        println!("{:#?}", token);
-    }
+    // let source = String::from("x <= 2 + y");
+    // let mut scanner = Scanner::new(source);
+    // let tokens = scanner.scan_tokens();
+    // for token in tokens {
+    //     println!("{:#?}", token);
+    // }
+    let mut args = env::args();
+    let _program = args.next();
+    let output_dir = match args.next() {
+        Some(dir) if args.next().is_none() => dir,
+        _ => {
+            eprintln!("Usage: generate_ast <output directory>");
+            process::exit(64);
+        }
+    };
+
+    println!("Output directory: {}", output_dir);
 }

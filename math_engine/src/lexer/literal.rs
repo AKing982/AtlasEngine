@@ -1,5 +1,5 @@
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) enum Literal{
+pub enum Literal{
     Number(f64),
     String(String),
 }

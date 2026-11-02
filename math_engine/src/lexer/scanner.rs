@@ -127,6 +127,13 @@ impl Scanner {
                 self.add_token(token_type);
             }
             ',' => self.add_token(TokenType::Comma),
+            '.' => {
+                if Self::is_digit(self.peek()){
+                    self.number()
+                }else {
+                    self.add_token(TokenType::Dot);
+                }
+            }
             '/' => {
                 if self.match_char('/'){
                     while self.peek() != '\n' && !self.is_at_end() {
@@ -171,18 +178,26 @@ impl Scanner {
     }
 
     fn number(&mut self) {
+        let starts_with_dot = self.source[self.start..].starts_with(".");
+        if !starts_with_dot {
+            while Self::is_digit(self.peek()){
+                self.advance();
+            }
+            if self.peek() == '.' && Self::is_digit(self.peek_next()){
+                self.advance();
+            }
+        }else {
+            self.advance();
+        }
         while Self::is_digit(self.peek()) {
             self.advance();
         }
-        if self.peek() == '.' && Self::is_digit(self.peek_next()){
-            self.advance();
-        }
-        while Self::is_digit(self.peek()) {
-            self.advance();
-        }
-        let value: f64 = self.source[self.start..self.current]
-            .parse()
-            .unwrap();
+        let text = if starts_with_dot {
+            format!("0{}", &self.source[self.start..self.current])
+        }else{
+            self.source[self.start..self.current].to_string()
+        };
+        let value: f64 = text.parse().unwrap();
         self.add_number_token(TokenType::Number, value);
     }
 

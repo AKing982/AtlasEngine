@@ -13,6 +13,7 @@ mod literal;
 
 #[cfg(test)]
 mod tests{
+    use crate::literal::Literal;
     use crate::scanner;
     use crate::scanner::Scanner;
     use crate::token_type::TokenType;
@@ -180,7 +181,6 @@ mod tests{
     }
 
 
-
     #[test]
     fn test_decimal_without_leading_zero() {
         let source = String::from(".456");
@@ -188,10 +188,11 @@ mod tests{
         let mut scanner = Scanner::new(source);
         let tokens = scanner.scan_tokens();
 
-        assert_eq!(tokens.len(), 3);
-        assert_eq!(tokens[0].token_type, TokenType::Dot);
-        assert_eq!(tokens[1].token_type, TokenType::Number);
-        assert_eq!(tokens[1].lexeme, "456");
+        assert_eq!(tokens.len(), 2);
+        assert_eq!(tokens[0].token_type, TokenType::Number);
+        assert_eq!(tokens[0].lexeme, ".456");
+        assert_eq!(tokens[0].literal, Some(Literal::Number(0.456)));
+        assert_eq!(tokens[1].token_type, TokenType::Eof);
     }
 
     #[test]
