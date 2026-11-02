@@ -4,4 +4,14 @@ pub enum Expr {
         operator: Token,
         right: Box<Expr>,
     },
+    Grouping {
+        expression: Box<Expr>,
+    },
+    Literal {
+        value: Literal,
+    },
+    Unary {
+        operator: Token,
+        right: Box<Expr>,
+    }
 }
