@@ -1,3 +1,4 @@
+use crate::expr::Expr;
 use crate::function::FunctionExpr;
 
 #[derive(Debug, Clone)]
@@ -8,10 +9,10 @@ pub(crate) struct Fraction {
 
 impl Fraction {
 
-    pub(crate) fn new(numerator: &str, denominator: &str) -> Self {
+    pub(crate) fn new(numerator: &str, numerator_expr: Expr, denominator: &str, denominator_expr: Expr) -> Self {
         Self{
-            numerator: FunctionExpr::new(numerator),
-            denominator: FunctionExpr::new(denominator),
+            numerator: FunctionExpr::new(numerator, numerator_expr),
+            denominator: FunctionExpr::new(denominator, denominator_expr),
         }
     }
 

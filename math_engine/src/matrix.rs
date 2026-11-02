@@ -21,7 +21,8 @@ impl Matrix {
         self.matrix[row][col]
     }
 
-    pub(crate) fn rows(&self) -> usize{
+    pub(crate) fn rows(&self) -> usize
+    {
         self.matrix.len()
     }
 
@@ -251,15 +252,9 @@ impl Matrix {
         }
         panic!("No implementation for transpose for dimensions n > 2 yet");
     }
-
-    pub(crate) fn is_orthogonal(&self) -> bool {
-        if !self.is_square() {
-            panic!("Unable to perform operation on a non square matrix");
-        }
-
-
-    }
-
+    
+    
+    
     pub(crate) fn print_size(&self) {
         println!("({}, {})", self.rows, self.cols);
     }

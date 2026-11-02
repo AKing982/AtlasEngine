@@ -3,11 +3,6 @@ struct Antiderivative;
 
 impl Antiderivative {
 
-    pub(crate) fn integrate(expr: &str) -> Option<String>
-    {
-
-    }
-
     pub(crate) fn power_rule(k: f64, n: f64, x: f64) -> f64 {
         if n == -1.0 {
             return k * x.abs().ln();
@@ -39,17 +34,6 @@ impl Antiderivative {
         }
     }
 
-    pub(crate) fn sin_eval(x: f64, k: f64) -> f64 {
-        if k == 1.0 {
-            -x.cos()
-        }
-        else if k == 2.0{
-            return x / 2.0 - (2.0 * x).sin() / 4.0;
-        }else {
-            let term1 = -(x.sin().powf(k - 1.0) * x.cos()) / k;
-            let term2
-        }
-    }
 
     pub(crate) fn sin(k: f64) -> String {
         if k == 1.0 {
@@ -125,13 +109,6 @@ impl Antiderivative {
         x * x.ln() - x
     }
 
-    pub(crate) fn u_rule(f: impl Fn(f64) -> f64,
-                         u: impl Fn(f64) -> f64,
-                         du_dx: impl Fn(f64) -> f64,
-                         x: f64) -> f64 {
-
-
-    }
 
 
 }

@@ -1,26 +1,19 @@
+use crate::expr::Expr;
 use crate::function::FunctionExpr;
 
 struct DefiniteIntegral {
     a: f64,
     b: f64,
     f: FunctionExpr,
-    dx: FunctionExpr,
 }
 
 impl DefiniteIntegral {
-    pub(crate) fn new(a: f64, b: f64, f: &str, dx: &str) -> Self {
-        let parsed_f = FunctionExpr::new(f);
-        let parsed_dx = FunctionExpr::new(dx);
+    pub(crate) fn new(a: f64, b: f64, seq: &str, expr: Expr) -> Self {
         Self {
-            a: a,
-            b: b,
-            f: parsed_f,
-            dx: parsed_dx,
+            a,
+            b,
+            f: FunctionExpr::new(seq, expr),
         }
     }
-
-    pub(crate) fn eval(upper: f64, lower: f64, f: &str) -> f64 {
-        let parsed_f = FunctionExpr::new(f);
-
-    }
+    
 }

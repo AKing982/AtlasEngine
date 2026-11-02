@@ -4,25 +4,32 @@ mod fraction;
 mod limit;
 mod derivative;
 mod matrix;
-mod Summation;
+mod summation;
 mod DefiniteIntegral;
 mod Complex;
 mod Antiderivative;
 mod expr;
+mod infinite_summation;
+mod MetricTensor;
+#[path = "lexer/scanner.rs"]
+mod scanner;
 
-use fraction::Fraction;
-use limit::Limit;
-use derivative::Derivative;
+#[path = "lexer/token.rs"]
+mod token;
+
+#[path = "lexer/token_type.rs"]
+mod token_type;
+
+#[path = "lexer/literal.rs"]
+mod literal;
+
+use crate::scanner::Scanner;
 
 fn main() {
-    let frac = Fraction::new(
-        "3*t^3 - 2*t^2 + 1",
-        "t - 2"
-    );
-
-    let lim = Limit::new(frac, 3.0);
-
-    let derivative = Derivative::derivative(lim);
-
-    println!("Derivative = {}", derivative);
+    let source = String::from(".456");
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan_tokens();
+    for token in tokens {
+        println!("{:#?}", token);
+    }
 }
