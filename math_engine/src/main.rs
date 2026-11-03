@@ -23,7 +23,7 @@ mod token_type;
 #[path = "lexer/literal.rs"]
 mod literal;
 
-use crate::scanner::Scanner;
+
 use std::env;
 use std::process;
 use std::fs::File;
