@@ -1,4 +1,5 @@
-use crate::expr::Expr;
+use meval::Expr;
+
 #[derive(Debug, Clone)]
 pub(crate) struct FunctionExpr {
     expr: meval::Expr,

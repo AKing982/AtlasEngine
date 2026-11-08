@@ -1,4 +1,4 @@
-use crate::expr::Expr;
+use meval::Expr;
 use crate::function::FunctionExpr;
 
 struct Summation {

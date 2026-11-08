@@ -8,6 +8,10 @@ pub enum TokenType{
     Equal,
     Dot,
     Comma,
+    SemiColon,
+    BangBang,
+    Bang,
+    BangEqual,
     EqualEqual,
     Less,
     LessEqual,
@@ -15,6 +19,7 @@ pub enum TokenType{
     GreaterEqual,
     LeftParen,
     RightParen,
+    Nil,
 
     // Keywords
     And,
@@ -28,7 +33,8 @@ pub enum TokenType{
 
     String,
     Number,
+    Var,
     Identifier,
-    Eof
+    Eof,
 }
 

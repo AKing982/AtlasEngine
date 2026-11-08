@@ -1,5 +1,5 @@
 #[derive(Clone, Debug)]
-pub(crate) enum Expr {
+pub enum Expr {
     Constant(f64),
     Variable(String),
     Add(Box<Expr>, Box<Expr>),

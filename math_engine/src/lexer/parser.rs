@@ -1,142 +1,289 @@
+
+use crate::ast_expr::AstExpr;
+use crate::ast_expr::AstExpr::Literal;
+use crate::token::Token;
+use crate::token_type::TokenType;
+use crate::parse_error::ParseError;
+use crate::ast_stmt::AstStmt;
+
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
 }
 
 impl Parser {
-    pub(crate) fn new(&self, tokens: Vec<Token>) -> Self {
-        Self{
+    pub(crate) fn new(tokens: Vec<Token>) -> Self {
+        Self {
             tokens,
-            usize: 0,
+            current: 0,
         }
     }
 
-    fn expression(&self) -> Expr {
-        return self.equality();
+    fn statement(&mut self) -> Result<AstStmt, ParseError>{
+        let expression = self.expression()?;
+        if !self.match_token(&[TokenType::SemiColon]) && !self.is_at_end() {
+            return Err(self.error(
+                self.peek(),
+                "Expect ';' after expression",
+            ));
+        }
+        Ok(AstStmt::Expression{expression})
     }
 
+    fn declaration(&mut self) -> Result<AstStmt, ParseError>{
+        if self.match_token(&[TokenType::Var]){
+            return self.var_declaration();
+        }
+        self.statement()
+    }
 
+    fn var_declaration(&mut self) -> Result<AstStmt, ParseError> {
+        let name = self.consume(TokenType::Identifier,
+        "Expect variable name.")?;
+        let initializer = if self.match_token(&[TokenType::Equal]){
+            Some(self.expression()?)
+        }else{
+            None
+        };
+        self.consume(TokenType::SemiColon,
+        "Expect ';' after variable declaration")?;
+        Ok(AstStmt::Var {
+            name,
+            initializer
+        })
+    }
 
-    fn match_token(&self, types: &[TokenType]) -> bool {
+    fn power(&mut self) -> Result<AstExpr, ParseError>{
+        let mut expression = self.primary()?;
+        if self.match_token(&[TokenType::Caret]){
+            let operator = self.previous().clone();
+            let right = self.unary()?;
+            expression = AstExpr::Binary {
+                left: Box::new(expression),
+                operator,
+                right: Box::new(right),
+            };
+        }
+        Ok(expression)
+    }
+
+    fn expression(&mut self) -> Result<AstExpr, ParseError> {
+        self.assignment()
+    }
+
+    fn match_token(&mut self, types: &[TokenType]) -> bool {
         for token_type in types {
-            if self.check(*token_type){
+            if self.check_token(token_type) {
                 self.advance();
                 return true;
             }
         }
-        return false;
+
+        false
+    }
+    fn error(&self, _token: &Token, message: &str) -> ParseError {
+        ParseError::new(message)
     }
 
-    fn check_token(&self, token_type: TokenType) -> bool {
-        !self.is_at_end() && self.peek().token_type == token_type
+    fn check_token(&self, token_type: &TokenType) -> bool {
+        !self.is_at_end() && &self.peek().token_type == token_type
     }
 
-    fn advance(&mut self) -> Token {
-        if self.is_at_end() {
+    fn advance(&mut self) -> &Token {
+        if !self.is_at_end() {
             self.current += 1;
         }
-        return self.previous();
+        self.previous()
     }
 
-    fn previous(&mut self) -> Token {
-        return self.tokens[self.current - 1];
+    fn previous(&self) -> &Token {
+        &self.tokens[self.current - 1]
     }
 
-    fn peek(&self) -> Token {
-        return self.tokens[self.current];
+    fn peek(&self) -> &Token {
+        &self.tokens[self.current]
     }
 
     fn is_at_end(&self) -> bool {
-        return self.peek().token_type == EOF;
+        return self.peek().token_type == TokenType::Eof;
     }
 
-    fn primary(&mut self) -> Expr {
-        if self.match_token(TokenType::False) {
-            return Expr::Literal(Value::Boolean(false));
+    fn primary(&mut self) -> Result<AstExpr, ParseError> {
+        if self.match_token(&[TokenType::False]) {
+            return Ok(Literal {
+                value: crate::literal::Literal::Boolean(false),
+            });
         }
-        if self.match_token(&[TokenType::True]){
-            return Expr::Literal(Value::Boolean(true));
+
+        if self.match_token(&[TokenType::True]) {
+            return Ok(Literal {
+                value: crate::literal::Literal::Boolean(true),
+            });
         }
-        if self.match_token(&[TokenType::Nil]){
-            return Expr::Literal(Value::Nil);
+
+        if self.match_token(&[TokenType::Nil]) {
+            return Ok(Literal {
+                value: crate::literal::Literal::Nil(),
+            });
         }
-        if self.match_token(&[
-            TokenType::Number,
-            TokenType::String,
-        ]){
-            return Expr::Literal(
-                Value::from(self.previous().literal.clone())
-            );
+
+        if self.match_token(&[TokenType::LeftParen]) {
+            let expr = self.expression()?;
+
+            self.consume(
+                TokenType::RightParen,
+                "Expect ')' after expression.",
+            )?;
+
+            return Ok(AstExpr::Grouping {
+                expression: Box::new(expr),
+            });
         }
+
+        if self.match_token(&[TokenType::Number]){
+            return Ok(Literal {
+                value: self.previous()
+                    .literal
+                    .clone()
+                    .expect("Number token should contain a literal"),
+            });
+        }
+
+        if self.match_token(&[TokenType::Identifier]){
+            return Ok(AstExpr::Variable {
+                name: self.previous().clone(),
+            });
+        }
+        Err(self.error(self.peek(), "Expect expression."))
     }
 
-    fn unary(&self) -> Expr {
+    fn assignment(&mut self) -> Result<AstExpr, ParseError>{
+        let mut expr = self.equality()?;
+        if self.match_token(&[TokenType::Equal]){
+            let value = self.assignment()?;
+            if let AstExpr::Variable {name} = expr {
+                return Ok(AstExpr::Assign {
+                    name,
+                    value: Box::new(value),
+                });
+            }
+            return Err(self.error(
+                self.previous(),
+                "Invalid assignment target.",
+            ));
+        }
+        Ok(expr)
+    }
+
+    pub(crate) fn parse(&mut self) -> Result<Vec<AstStmt>, ParseError> {
+        let mut statements = Vec::new();
+        while !self.is_at_end(){
+            statements.push(self.declaration()?);
+        }
+        Ok(statements)
+    }
+
+    fn consume(
+        &mut self,
+        token_type: TokenType,
+        message: &str,
+    ) -> Result<Token, ParseError> {
+        if self.check_token(&token_type) {
+            return Ok(self.advance().clone());
+        }
+
+        Err(self.error(self.peek(), message))
+    }
+
+    fn unary(&mut self) -> Result<AstExpr, ParseError> {
         if self.match_token(&[
             TokenType::Bang,
-            TokenType::Minus
-        ]){
+            TokenType::Minus,
+        ]) {
             let operator = self.previous().clone();
-            let right = self.unary();
-            return Expr::Binary {
-                left: Box::new(expr),
+            let right = self.unary()?;
+            return Ok(AstExpr::Unary {
                 operator,
                 right: Box::new(right),
-            }
+            });
         }
+
+        self.power()
     }
 
-    fn factor(&self) -> Expr {
-        let mut expr = self.unary();
+    fn term(&mut self) -> Result<AstExpr, ParseError> {
+        let mut expr = self.factor()?;
         while self.match_token(&[
-            TokenType::Slash,
-            TokenType::Star
-        ]){
+            TokenType::Minus,
+            TokenType::Plus,
+        ]) {
             let operator = self.previous().clone();
-            let right = self.unary();
-            expr = Expr::Binary {
+            let right = self.factor()?;
+            expr = AstExpr::Binary {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
             };
         }
-        expr
+        Ok(expr)
     }
 
-    fn comparison(&self) -> Expr {
-        let mut expr = self.term();
+    fn factor(&mut self) -> Result<AstExpr, ParseError> {
+        let mut expr = self.unary()?;
+        while self.match_token(&[
+            TokenType::Slash,
+            TokenType::Star,
+        ]) {
+            let operator = self.previous().clone();
+            let right = self.unary()?;
+            expr = AstExpr::Binary {
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
+    }
+
+    fn comparison(&mut self) -> Result<AstExpr, ParseError> {
+        let mut expr = self.term()?;
         while self.match_token(&[
             TokenType::Greater,
             TokenType::GreaterEqual,
             TokenType::Less,
-            TokenType::LessEqual
-        ])
-        {
+            TokenType::LessEqual,
+        ]) {
             let operator = self.previous().clone();
-            let right = self.term();
-            expr = Expr::Binary{
+            let right = self.term()?;
+
+            expr = AstExpr::Binary {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
             };
         }
-        expr
+
+        Ok(expr)
     }
 
-    fn equality(&mut self) -> Expr {
-        let mut expr = self.comparison();
+    fn equality(&mut self) -> Result<AstExpr, ParseError> {
+        let mut expr = self.comparison()?;
+
         while self.match_token(&[
             TokenType::BangEqual,
             TokenType::EqualEqual,
-        ]){
+        ]) {
             let operator = self.previous().clone();
-            let right = self.comparison();
-            expr = Expr::Binary {
+            let right = self.comparison()?;
+
+            expr = AstExpr::Binary {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
             };
         }
-        expr
+
+        Ok(expr)
     }
 
 }

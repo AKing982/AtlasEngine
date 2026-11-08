@@ -8,9 +8,22 @@ mod summation;
 mod DefiniteIntegral;
 mod Complex;
 mod Antiderivative;
-mod expr;
+
+#[path="lexer/parse_error.rs"]
+mod parse_error;
+
+#[path = "lexer/ast_expr.rs"]
+mod ast_expr;
+
 mod infinite_summation;
 mod MetricTensor;
+
+#[path="lexer/ast_printer.rs"]
+mod ast_printer;
+
+#[path="lexer/parser.rs"]
+mod parser;
+
 #[path = "lexer/scanner.rs"]
 mod scanner;
 
@@ -23,12 +36,33 @@ mod token_type;
 #[path = "lexer/literal.rs"]
 mod literal;
 
+#[path="lexer/ast_stmt.rs"]
+mod ast_stmt;
+
+#[path="lexer/interpreter.rs"]
+mod interpreter;
+
+#[path="lexer/value.rs"]
+mod value;
+
+#[path="lexer/runtime_error.rs"]
+mod runtime_error;
+
+#[path="lexer/environment.rs"]
+mod environment;
 
 use std::env;
 use std::process;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+
+use crate::ast_printer::AstPrinter;
+use crate::ast_stmt::AstStmt;
+use crate::interpreter::Interpreter;
+use crate::parser::Parser;
+use crate::scanner::Scanner;
+
 
 fn define_ast(
     output_dir: &str,
@@ -82,23 +116,59 @@ fn define_type(
 
     Ok(())
 }
-
 fn main() {
-    // let source = String::from("x <= 2 + y");
-    // let mut scanner = Scanner::new(source);
-    // let tokens = scanner.scan_tokens();
-    // for token in tokens {
-    //     println!("{:#?}", token);
-    // }
-    let mut args = env::args();
-    let _program = args.next();
-    let output_dir = match args.next() {
-        Some(dir) if args.next().is_none() => dir,
-        _ => {
-            eprintln!("Usage: generate_ast <output directory>");
-            process::exit(64);
-        }
-    };
+    let source = String::from("var x = 10; 2 + (x - 2)^3;");
 
-    println!("Output directory: {}", output_dir);
+    // 1. Lexical analysis
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan_tokens();
+
+    println!("Tokens:");
+    for token in &tokens {
+        println!("{:#?}", token);
+    }
+
+    // 2. Parsing
+    let mut parser = Parser::new(tokens);
+
+    match parser.parse() {
+        Ok(statements) => {
+            // 3. AST printing
+            let printer = AstPrinter::new();
+
+            println!("\nAST:");
+
+            for statement in &statements {
+                match statement {
+                    AstStmt::Expression { expression } => {
+                        println!("{}", printer.print(expression));
+                    }
+
+                    AstStmt::Var { name, initializer } => {
+                        println!(
+                            "(var {} {})",
+                            name.lexeme,
+                            match initializer {
+                                Some(expression) => printer.print(expression),
+                                None => "nil".to_string(),
+                            }
+                        );
+                    }
+                }
+            }
+
+            // 4. Interpretation
+            let mut interpreter = Interpreter::new();
+
+            println!("\nOutput:");
+
+            for statement in &statements {
+                interpreter.interpret(statement);
+            }
+        }
+
+        Err(error) => {
+            eprintln!("Parsing failed: {:?}", error);
+        }
+    }
 }

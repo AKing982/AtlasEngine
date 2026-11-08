@@ -35,6 +35,7 @@ impl Scanner {
         keywords.insert("let".to_string(), TokenType::Let);
         keywords.insert("fn".to_string(), TokenType::Fn);
         keywords.insert("or".to_string(), TokenType::Or);
+        keywords.insert("var".to_string(), TokenType::Var);
         keywords
     }
 
@@ -142,6 +143,9 @@ impl Scanner {
                 }else{
                     self.add_token(TokenType::Slash);
                 }
+            }
+            ';' => {
+                self.add_token(TokenType::SemiColon)
             }
             ' ' | '\r' | '\t' => {
                 // Ignore Whitespace

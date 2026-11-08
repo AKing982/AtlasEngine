@@ -1,0 +1,26 @@
+use crate::token::Token;
+use crate::literal::Literal;
+pub(crate) enum AstExpr {
+    Binary {
+        left: Box<AstExpr>,
+        operator: Token,
+        right: Box<AstExpr>,
+    },
+    Grouping {
+        expression: Box<AstExpr>,
+    },
+    Literal {
+        value: Literal,
+    },
+    Unary {
+        operator: Token,
+        right: Box<AstExpr>,
+    },
+    Variable {
+        name: Token,
+    },
+    Assign {
+        name: Token,
+        value: Box<AstExpr>,
+    },
+}
