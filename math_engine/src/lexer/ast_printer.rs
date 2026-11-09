@@ -39,6 +39,11 @@ impl AstPrinter {
                     &[right.as_ref()],
                 )
             },
+            AstExpr::Call { callee, arguments, .. } => {
+               let mut expressions: Vec<&AstExpr> = vec![callee];
+                expressions.extend(arguments.iter());
+                self.parenthesize("call", &expressions)
+            }
             AstExpr::Assign {name, value} => {
                 self.parenthesize(
                     &format!("= {}", name.lexeme),

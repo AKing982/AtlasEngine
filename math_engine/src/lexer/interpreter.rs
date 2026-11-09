@@ -149,6 +149,9 @@ impl Interpreter {
                     ))?;
                 Ok(value.clone())
             }
+            AstExpr::Call {callee, arguments, .. } => {
+
+            }
             AstExpr::Assign {name, value} => {
                 let name_str: &str = name.lexeme.as_str();
                 let val = self.evaluate(value)?;

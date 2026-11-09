@@ -54,7 +54,7 @@ impl Parser {
     }
 
     fn power(&mut self) -> Result<AstExpr, ParseError>{
-        let mut expression = self.primary()?;
+        let mut expression = self.call()?;
         if self.match_token(&[TokenType::Caret]){
             let operator = self.previous().clone();
             let right = self.unary()?;
@@ -105,7 +105,7 @@ impl Parser {
     }
 
     fn is_at_end(&self) -> bool {
-        return self.peek().token_type == TokenType::Eof;
+        self.peek().token_type == TokenType::Eof
     }
 
     fn primary(&mut self) -> Result<AstExpr, ParseError> {
@@ -171,6 +171,20 @@ impl Parser {
                 self.previous(),
                 "Invalid assignment target.",
             ));
+        }
+        Ok(expr)
+    }
+
+    fn call(&mut self) -> Result<AstExpr, ParseError>{
+        let mut expr = self.primary()?;
+        if self.match_token(&[TokenType::LeftParen]){
+           let argument = self.expression()?;
+            self.consume(TokenType::RightParen,
+            "Expect ')' after expression")?;
+            expr = AstExpr::Call {
+                callee: Box::new(expr),
+                arguments: vec![argument],
+            };
         }
         Ok(expr)
     }
