@@ -200,7 +200,6 @@ impl Interpreter {
             Value::Integer(n) => n.to_string(),
             Value::Number(n) => {
                 let mut text = n.to_string();
-
                 if text.ends_with(".0") {
                     text.truncate(text.len() - 2);
                 }

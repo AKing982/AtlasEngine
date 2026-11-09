@@ -117,51 +117,66 @@ fn define_type(
     Ok(())
 }
 fn main() {
-    let source = String::from("var x = 10; 2 + (x - 2)^3;");
+    let args: Vec<String> = env::args().collect();
 
+    if args.len() > 2 {
+        eprintln!("Usage: math_engine [script]");
+        process::exit(64);
+    }
+
+    if args.len() == 2 {
+        run_file(&args[1]);
+    } else {
+        run_prompt();
+    }
+}
+
+fn run(source: String) {
+    let mut interpreter = Interpreter::new();
+    run_with_interpreter(source, &mut interpreter);
+}
+
+fn run_file(path: &str) {
+    let source = std::fs::read_to_string(path)
+        .expect("Could not read source file");
+
+    run(source);
+}
+
+fn run_prompt() {
+    use std::io::{self, Write};
+
+    let mut interpreter = Interpreter::new();
+
+    loop {
+        print!("> ");
+        io::stdout().flush().unwrap();
+
+        let mut line = String::new();
+
+        if io::stdin().read_line(&mut line).unwrap() == 0 {
+            break;
+        }
+
+        if line.trim() == "exit" {
+            break;
+        }
+
+        run_with_interpreter(line, &mut interpreter);
+    }
+}
+
+fn run_with_interpreter(source: String, interpreter: &mut Interpreter) {
     // 1. Lexical analysis
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens();
-
-    println!("Tokens:");
-    for token in &tokens {
-        println!("{:#?}", token);
-    }
 
     // 2. Parsing
     let mut parser = Parser::new(tokens);
 
     match parser.parse() {
         Ok(statements) => {
-            // 3. AST printing
-            let printer = AstPrinter::new();
-
-            println!("\nAST:");
-
-            for statement in &statements {
-                match statement {
-                    AstStmt::Expression { expression } => {
-                        println!("{}", printer.print(expression));
-                    }
-
-                    AstStmt::Var { name, initializer } => {
-                        println!(
-                            "(var {} {})",
-                            name.lexeme,
-                            match initializer {
-                                Some(expression) => printer.print(expression),
-                                None => "nil".to_string(),
-                            }
-                        );
-                    }
-                }
-            }
-
-            // 4. Interpretation
-            let mut interpreter = Interpreter::new();
-
-            println!("\nOutput:");
-
+            // 3. Interpretation
             for statement in &statements {
                 interpreter.interpret(statement);
             }
@@ -172,3 +187,4 @@ fn main() {
         }
     }
 }
+
