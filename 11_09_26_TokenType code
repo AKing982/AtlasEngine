@@ -1,0 +1,51 @@
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TokenType{
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    Caret,
+    Equal,
+    Dot,
+    Comma,
+    SemiColon,
+    BangBang,
+    Bang,
+    BangEqual,
+    EqualEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    LeftParen,
+    RightParen,
+    Nil,
+
+    // Keywords
+    And,
+    Or,
+    False,
+    Else,
+    If,
+    True,
+    Let,
+    Fn,
+
+    // Functions
+    Log,
+    Exp,
+    Tan,
+    Sin,
+    Cos,
+    Sqrt,
+    Ln,
+    Complex,
+    Conjugate,
+
+    String,
+    Number,
+    Var,
+    Identifier,
+    Eof,
+}
+
