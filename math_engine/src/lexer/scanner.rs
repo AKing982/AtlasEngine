@@ -36,6 +36,17 @@ impl Scanner {
         keywords.insert("fn".to_string(), TokenType::Fn);
         keywords.insert("or".to_string(), TokenType::Or);
         keywords.insert("var".to_string(), TokenType::Var);
+        keywords.insert("sin".to_string(), TokenType::Sin);
+        keywords.insert("cos".to_string(), TokenType::Cos);
+        keywords.insert("tan".to_string(), TokenType::Tan);
+        keywords.insert("exp".to_string(), TokenType::Exp);
+        keywords.insert("log".to_string(), TokenType::Log);
+        keywords.insert("sqrt".to_string(), TokenType::Sqrt);
+        keywords.insert("complex".to_string(), TokenType::Complex);
+        keywords.insert("conjugate".to_string(), TokenType::Conjugate);
+        keywords.insert("i".to_string(), TokenType::I);
+        keywords.insert("pi".to_string(), TokenType::Pi);
+        keywords.insert("e".to_string(), TokenType::E);
         keywords
     }
 

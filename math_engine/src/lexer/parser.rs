@@ -1,10 +1,11 @@
 
 use crate::ast_expr::AstExpr;
-use crate::ast_expr::AstExpr::Literal;
 use crate::token::Token;
 use crate::token_type::TokenType;
 use crate::parse_error::ParseError;
 use crate::ast_stmt::AstStmt;
+use crate::complex::Complex;
+use crate::literal::Literal;
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -110,20 +111,20 @@ impl Parser {
 
     fn primary(&mut self) -> Result<AstExpr, ParseError> {
         if self.match_token(&[TokenType::False]) {
-            return Ok(Literal {
-                value: crate::literal::Literal::Boolean(false),
+            return Ok(AstExpr::Literal {
+                value: Literal::Boolean(false),
             });
         }
 
         if self.match_token(&[TokenType::True]) {
-            return Ok(Literal {
-                value: crate::literal::Literal::Boolean(true),
+            return Ok(AstExpr::Literal {
+                value: Literal::Boolean(true),
             });
         }
 
         if self.match_token(&[TokenType::Nil]) {
-            return Ok(Literal {
-                value: crate::literal::Literal::Nil(),
+            return Ok(AstExpr::Literal {
+                value: Literal::Nil(),
             });
         }
 
@@ -141,7 +142,7 @@ impl Parser {
         }
 
         if self.match_token(&[TokenType::Number]){
-            return Ok(Literal {
+            return Ok(AstExpr::Literal {
                 value: self.previous()
                     .literal
                     .clone()
@@ -153,6 +154,29 @@ impl Parser {
             return Ok(AstExpr::Variable {
                 name: self.previous().clone(),
             });
+        }
+
+        if self.match_token(&[TokenType::Exp,
+        TokenType::Sin, TokenType::Cos, TokenType::Tan, TokenType::Ln, TokenType::Log,
+        TokenType::Sqrt, TokenType::Complex, TokenType::Conjugate]){
+            return Ok(AstExpr::Function {
+                name: self.previous().clone(),
+            })
+        }
+        if self.match_token(&[TokenType::I]){
+            return Ok(AstExpr::Literal {
+                value: Literal::Complex(Complex::i()),
+            });
+        }
+        if self.match_token(&[TokenType::E]){
+            return Ok(AstExpr::Literal {
+                value: Literal::Number(std::f64::consts::E)
+            })
+        }
+        if self.match_token(&[TokenType::Pi]){
+            return Ok(AstExpr::Literal {
+                value: Literal::Number(std::f64::consts::PI)
+            })
         }
         Err(self.error(self.peek(), "Expect expression."))
     }
@@ -178,15 +202,30 @@ impl Parser {
     fn call(&mut self) -> Result<AstExpr, ParseError>{
         let mut expr = self.primary()?;
         if self.match_token(&[TokenType::LeftParen]){
-           let argument = self.expression()?;
+           let mut arguments = Vec::new();
+           if !self.check(&TokenType::RightParen){
+               loop {
+                   arguments.push(self.expression()?);
+                   if !self.match_token(&[TokenType::Comma]){
+                       break;
+                   }
+               }
+           }
             self.consume(TokenType::RightParen,
             "Expect ')' after expression")?;
             expr = AstExpr::Call {
                 callee: Box::new(expr),
-                arguments: vec![argument],
+                arguments,
             };
         }
         Ok(expr)
+    }
+
+    fn check(&self, token_type: &TokenType) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+        self.peek().token_type == *token_type
     }
 
     pub(crate) fn parse(&mut self) -> Result<Vec<AstStmt>, ParseError> {

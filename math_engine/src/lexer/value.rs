@@ -1,3 +1,5 @@
+use crate::complex::Complex;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Integer(i32),
@@ -5,4 +7,5 @@ pub enum Value {
     String(String),
     Boolean(bool),
     Nil,
+    Complex(Complex),
 }

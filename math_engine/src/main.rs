@@ -6,7 +6,7 @@ mod derivative;
 mod matrix;
 mod summation;
 mod DefiniteIntegral;
-mod Complex;
+mod complex;
 mod Antiderivative;
 
 #[path="lexer/parse_error.rs"]
@@ -116,34 +116,58 @@ fn define_type(
 
     Ok(())
 }
+
+struct RunOptions {
+    show_tokens: bool,
+    show_ast: bool,
+}
+
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let mut options = RunOptions {
+        show_tokens: true,
+        show_ast: false,
+    };
 
-    if args.len() > 2 {
-        eprintln!("Usage: math_engine [script]");
-        process::exit(64);
+    let mut script: Option<String> = None;
+
+    for arg in env::args().skip(1) {
+        match arg.as_str() {
+            "--tokens" => options.show_tokens = true,
+            "--ast" => options.show_ast = true,
+            "--all" => {
+                options.show_tokens = true;
+                options.show_ast = true;
+            }
+            _ if arg.starts_with("--") => {
+                eprintln!("Unknown option: {}", arg);
+                process::exit(64);
+            }
+            _ => {
+                if script.is_some() {
+                    eprintln!("Usage: math_engine [--tokens] [--ast] [script]");
+                    process::exit(64);
+                }
+                script = Some(arg);
+            }
+        }
     }
 
-    if args.len() == 2 {
-        run_file(&args[1]);
+    if let Some(path) = script {
+        run_file(&path, &options);
     } else {
-        run_prompt();
+        run_prompt(&options);
     }
 }
 
-fn run(source: String) {
-    let mut interpreter = Interpreter::new();
-    run_with_interpreter(source, &mut interpreter);
-}
-
-fn run_file(path: &str) {
+fn run_file(path: &str, options: &RunOptions) {
     let source = std::fs::read_to_string(path)
         .expect("Could not read source file");
 
-    run(source);
+    let mut interpreter = Interpreter::new();
+    run_with_interpreter(source, &mut interpreter, options);
 }
 
-fn run_prompt() {
+fn run_prompt(options: &RunOptions) {
     use std::io::{self, Write};
 
     let mut interpreter = Interpreter::new();
@@ -162,21 +186,58 @@ fn run_prompt() {
             break;
         }
 
-        run_with_interpreter(line, &mut interpreter);
+        run_with_interpreter(line, &mut interpreter, options);
     }
 }
 
-fn run_with_interpreter(source: String, interpreter: &mut Interpreter) {
-    // 1. Lexical analysis
+fn run_with_interpreter(
+    source: String,
+    interpreter: &mut Interpreter,
+    options: &RunOptions,
+) {
+    // 1. Scanner
     let mut scanner = Scanner::new(source);
     let tokens = scanner.scan_tokens();
 
-    // 2. Parsing
-    let mut parser = Parser::new(tokens);
+    if options.show_tokens {
+        println!("\n=== TOKENS ===");
+        for token in &tokens {
+            println!("{:?}", token);
+        }
+    }
+
+    // 2. Parser
+    let mut parser = Parser::new(tokens.clone());
 
     match parser.parse() {
         Ok(statements) => {
-            // 3. Interpretation
+
+            if options.show_ast {
+                println!("\n=== SYNTAX TREE ===");
+
+                let printer = AstPrinter::new();
+
+                for statement in &statements {
+                    match statement {
+                        AstStmt::Expression { expression } => {
+                            println!("{}", printer.print(expression));
+                        }
+
+                        AstStmt::Var { name, initializer } => {
+                            let value = match initializer {
+                                Some(expression) => printer.print(expression),
+                                None => "nil".to_string(),
+                            };
+
+                            println!("(var {} {})", name.lexeme, value);
+                        }
+                    }
+                }
+            }
+
+            // 3. Interpreter
+            println!("\n=== RESULTS ===");
+
             for statement in &statements {
                 interpreter.interpret(statement);
             }

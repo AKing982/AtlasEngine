@@ -1,4 +1,5 @@
 use crate::token::Token;
+use crate::token_type::TokenType;
 
 #[derive(Debug)]
 pub struct RuntimeError {

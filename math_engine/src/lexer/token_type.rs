@@ -31,6 +31,20 @@ pub enum TokenType{
     Let,
     Fn,
 
+    Sin,
+    Cos,
+    Tan,
+    Ln,
+    Log,
+    Sqrt,
+    Exp,
+    Complex,
+    Conjugate,
+
+    Pi,
+    I,
+    E,
+
     String,
     Number,
     Var,

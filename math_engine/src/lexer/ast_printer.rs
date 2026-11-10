@@ -39,6 +39,9 @@ impl AstPrinter {
                     &[right.as_ref()],
                 )
             },
+            AstExpr::Function {name} => {
+                name.lexeme.clone()
+            }
             AstExpr::Call { callee, arguments, .. } => {
                let mut expressions: Vec<&AstExpr> = vec![callee];
                 expressions.extend(arguments.iter());

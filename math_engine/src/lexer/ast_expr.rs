@@ -26,5 +26,8 @@ pub(crate) enum AstExpr {
     Call {
         callee: Box<AstExpr>,
         arguments: Vec<AstExpr>
+    },
+    Function {
+        name: Token,
     }
 }

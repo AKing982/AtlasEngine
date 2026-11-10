@@ -1,11 +1,13 @@
 use crate::ast_expr::AstExpr;
 use crate::ast_stmt::AstStmt;
+use crate::complex;
 use crate::literal::Literal;
 use crate::runtime_error::RuntimeError;
 use crate::token::Token;
 use crate::token_type::TokenType;
 use crate::value::Value;
 use crate::environment::Environment;
+use crate::complex::Complex;
 
 pub struct Interpreter{
     variable_map: Environment
@@ -27,6 +29,7 @@ impl Interpreter {
                     Literal::String(s) => Ok(Value::String(s.clone())),
                     Literal::Boolean(b) => Ok(Value::Boolean(*b)),
                     Literal::Nil() => Ok(Value::Nil),
+                    Literal::Complex(n) => Ok(Value::Complex(n.clone()))
                 }
             }
             AstExpr::Grouping {expression} => {
@@ -54,8 +57,13 @@ impl Interpreter {
                         self.check_number_operands(operator, &left, &right);
                         if let (Value::Number(left_num), Value::Number(right_num)) = (&left, &right) {
                             Ok(Value::Number(*left_num - *right_num))
-                        } else {
-                            unreachable!()
+                        } else if let (Value::Complex(left_complex), Value::Complex(right_complex)) = (&left, &right) {
+                            Ok(Value::Complex(left_complex.subtract(right_complex)))
+                        }else{
+                            Err(RuntimeError::new(
+                                operator,
+                                "Operands must be two numbers or two complex numbers",
+                            ))
                         }
                     }
                     TokenType::Slash => {
@@ -67,11 +75,15 @@ impl Interpreter {
                         }
                     },
                     TokenType::Star => {
-                        self.check_number_operands(operator, &left, &right)?;
                         if let (Value::Number(left_num), Value::Number(right_num)) = (&left, &right) {
                             Ok(Value::Number(*left_num * *right_num))
+                        }else if let (Value::Complex(left_complex), Value::Complex(right_complex)) = (&left, &right){
+                            Ok(Value::Complex(left_complex.multiply(right_complex)))
                         }else{
-                            unreachable!()
+                            Err(RuntimeError::new(
+                                operator,
+                                "Operands must be two numbers or two complex numbers",
+                            ))
                         }
                     }
                     TokenType::Plus => {
@@ -81,6 +93,9 @@ impl Interpreter {
                             }
                             (Value::String(left_str), Value::String(right_str)) => {
                                 Ok(Value::String(left_str.clone() + right_str))
+                            }
+                            (Value::Complex(left_complex), Value::Complex(right_complex)) => {
+                                Ok(Value::Complex(Complex::add(left_complex, right_complex)))
                             }
                             _ => {
                                 todo!()
@@ -149,8 +164,94 @@ impl Interpreter {
                     ))?;
                 Ok(value.clone())
             }
-            AstExpr::Call {callee, arguments, .. } => {
-
+            AstExpr::Function {name} => {
+                Err(RuntimeError::new(
+                    name,
+                    "Built in function must be called",
+                ))
+            }
+            AstExpr::Call {callee, arguments} => {
+                match callee.as_ref(){
+                    AstExpr::Function {name} => {
+                        let argument = self.evaluate(&arguments[0])?;
+                        let argument = match argument {
+                            Value::Number(n) => n,
+                            _ => {
+                                return Err(RuntimeError::new(
+                                    name,
+                                    "Argument must be a number",
+                                ));
+                            }
+                        };
+                        match name.token_type {
+                            TokenType::Exp => {Ok(Value::Number(argument.exp()))}
+                            TokenType::Sin => {Ok(Value::Number(argument.sin()))}
+                            TokenType::Cos => {Ok(Value::Number(argument.cos()))}
+                            TokenType::Tan => {Ok(Value::Number(argument.tan()))}
+                            TokenType::Ln => {Ok(Value::Number(argument.ln()))}
+                            TokenType::Log => {Ok(Value::Number(argument.log10()))}
+                            TokenType::Sqrt => {Ok(Value::Number(argument.sqrt()))}
+                            TokenType::Conjugate => {
+                                if arguments.len() != 1 {
+                                    return Err(RuntimeError::new(
+                                        name,
+                                        "Expected one argument",
+                                    ));
+                                }
+                                let argument = self.evaluate(&arguments[0])?;
+                                match argument {
+                                    Value::Complex(c) => {
+                                        Ok(Value::Complex(c.conjugate()))
+                                    }
+                                    _ => {
+                                        Err(RuntimeError::new(
+                                            name,
+                                            "Argument must be a complex number",
+                                        ))
+                                    }
+                                }
+                            }
+                            TokenType::Complex => {
+                                if arguments.len() != 2 {
+                                    return Err(RuntimeError::new(
+                                        name,
+                                        "expected two arguments",
+                                    ));
+                                }
+                                let arg1 = self.evaluate(&arguments[0])?;
+                                let arg2 = self.evaluate(&arguments[1])?;
+                                let arg1_val = match arg1 {
+                                    Value::Number(n) => n,
+                                    _ => {
+                                        return Err(RuntimeError::new(
+                                            name,
+                                            "First argument must be a number",
+                                        ));
+                                    }
+                                };
+                                let arg2_val = match arg2 {
+                                    Value::Number(n) => n,
+                                    _ => {
+                                        return Err(RuntimeError::new(
+                                            name,
+                                            "First argument must be a number",
+                                        ));
+                                    }
+                                };
+                                Ok(Value::Complex(Complex::new(arg1_val, arg2_val)))
+                            }
+                            _ => {
+                                Err(RuntimeError::new(
+                                    name,
+                                    "Unknown built-in function",
+                                ))
+                            }
+                        }
+                    }
+                    _ => {
+                        unreachable!()
+                    }
+                }
             }
             AstExpr::Assign {name, value} => {
                 let name_str: &str = name.lexeme.as_str();
@@ -208,6 +309,15 @@ impl Interpreter {
                 }
 
                 text
+            }
+            Value::Complex(c) => {
+                let real = c.real();
+                let imaginary = c.imaginary();
+                if imaginary < 0.0 {
+                    format!("{} - {}i", real, imaginary.abs())
+                }else{
+                    format!("{} + {}i", real, imaginary)
+                }
             }
             Value::String(s) => s.clone(),
         }
