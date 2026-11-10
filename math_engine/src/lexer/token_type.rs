@@ -40,6 +40,7 @@ pub enum TokenType{
     Exp,
     Complex,
     Conjugate,
+    Limit,
 
     Pi,
     I,

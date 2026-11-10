@@ -16,6 +16,10 @@ impl Environment{
     pub fn define(&mut self, name: String, value: Value){
         self.values.insert(name.to_string(), value);
     }
+
+    pub fn remove(&mut self, name: &str) -> Option<Value>{
+        self.values.remove(name)
+    }
     
     pub fn get(&self, name: &str) -> Option<&Value>{
         self.values.get(name)

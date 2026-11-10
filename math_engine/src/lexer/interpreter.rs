@@ -173,24 +173,81 @@ impl Interpreter {
             AstExpr::Call {callee, arguments} => {
                 match callee.as_ref(){
                     AstExpr::Function {name} => {
-                        let argument = self.evaluate(&arguments[0])?;
-                        let argument = match argument {
-                            Value::Number(n) => n,
-                            _ => {
-                                return Err(RuntimeError::new(
-                                    name,
-                                    "Argument must be a number",
-                                ));
-                            }
-                        };
                         match name.token_type {
-                            TokenType::Exp => {Ok(Value::Number(argument.exp()))}
-                            TokenType::Sin => {Ok(Value::Number(argument.sin()))}
-                            TokenType::Cos => {Ok(Value::Number(argument.cos()))}
-                            TokenType::Tan => {Ok(Value::Number(argument.tan()))}
-                            TokenType::Ln => {Ok(Value::Number(argument.ln()))}
-                            TokenType::Log => {Ok(Value::Number(argument.log10()))}
-                            TokenType::Sqrt => {Ok(Value::Number(argument.sqrt()))}
+                            TokenType::Exp => {
+                                let argument = self.evaluate_number(&arguments[0], name)?;
+                                Ok(Value::Number(argument.exp()))
+                            }
+                            TokenType::Sin => {
+                                let argument = self.evaluate_number(&arguments[0], name)?;
+                                Ok(Value::Number(argument.sin()))
+                            }
+                            TokenType::Cos => {
+                                let argument = self.evaluate_number(&arguments[0], name)?;
+                                Ok(Value::Number(argument.cos()))
+                            }
+                            TokenType::Tan => {
+                                let argument = self.evaluate_number(&arguments[0], name)?;
+                                Ok(Value::Number(argument.tan()))
+                            }
+                            TokenType::Ln => {
+                                let argument = self.evaluate_number(&arguments[0], name)?;
+                                Ok(Value::Number(argument.ln()))
+                            }
+                            TokenType::Log => {
+                                let argument = self.evaluate_number(&arguments[0], name)?;
+                                Ok(Value::Number(argument.log10()))
+                            }
+                            TokenType::Sqrt => {
+                                let argument = self.evaluate_number(&arguments[0], name)?;
+                                Ok(Value::Number(argument.sqrt()))
+                            }
+                            TokenType::Limit => {
+                                if arguments.len() != 3 {
+                                    return Err(RuntimeError::new(
+                                        name,
+                                        "Expected three arguments",
+                                    ));
+                                }
+
+                                // Keep the expression as an AST.
+                                let arg_expr = &arguments[0];
+
+                                // Extract the variable name.
+                                let variable_name = match &arguments[1] {
+                                    AstExpr::Variable { name } => name.lexeme.clone(),
+                                    _ => {
+                                        return Err(RuntimeError::new(
+                                            name,
+                                            "Second argument must be a variable",
+                                        ));
+                                    }
+                                };
+
+                                // Evaluate the approach value.
+                                let arg_lim = self.evaluate(&arguments[2])?;
+
+                                // Save the previous value.
+                                let previous_var = self.variable_map.get(&variable_name).cloned();
+
+                                // Temporarily define the variable.
+                                self.variable_map.define(variable_name.clone(), arg_lim);
+
+                                // Evaluate the expression.
+                                let result = self.evaluate(arg_expr);
+
+                                // Restore the environment.
+                                match previous_var {
+                                    Some(value) => {
+                                        self.variable_map.assign(&variable_name, value);
+                                    }
+                                    None => {
+                                        self.variable_map.remove(&variable_name);
+                                    }
+                                }
+
+                                result
+                            }
                             TokenType::Conjugate => {
                                 if arguments.len() != 1 {
                                     return Err(RuntimeError::new(
@@ -341,6 +398,16 @@ impl Interpreter {
             operator,
             "Operands must be numbers.",
         ))
+    }
+
+    fn evaluate_number(&mut self, expr: &AstExpr, name: &Token) -> Result<f64, RuntimeError> {
+        match self.evaluate(expr)? {
+            Value::Number(n) => Ok(n),
+            _ => Err(RuntimeError::new(
+                name,
+                "Argument must be a number",
+            )),
+        }
     }
 
     fn is_equal(&self, a: &Value, b: &Value) -> bool {

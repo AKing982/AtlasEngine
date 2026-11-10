@@ -44,6 +44,7 @@ impl Scanner {
         keywords.insert("sqrt".to_string(), TokenType::Sqrt);
         keywords.insert("complex".to_string(), TokenType::Complex);
         keywords.insert("conjugate".to_string(), TokenType::Conjugate);
+        keywords.insert("limit".to_string(), TokenType::Limit);
         keywords.insert("i".to_string(), TokenType::I);
         keywords.insert("pi".to_string(), TokenType::Pi);
         keywords.insert("e".to_string(), TokenType::E);

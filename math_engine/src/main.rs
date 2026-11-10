@@ -124,7 +124,7 @@ struct RunOptions {
 
 fn main() {
     let mut options = RunOptions {
-        show_tokens: true,
+        show_tokens: false,
         show_ast: false,
     };
 
