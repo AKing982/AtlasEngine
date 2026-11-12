@@ -158,7 +158,8 @@ impl Parser {
 
         if self.match_token(&[TokenType::Exp,
         TokenType::Sin, TokenType::Cos, TokenType::Tan, TokenType::Ln, TokenType::Log,
-        TokenType::Sqrt, TokenType::Complex, TokenType::Conjugate, TokenType::Limit]){
+        TokenType::Sqrt, TokenType::Complex, TokenType::Conjugate, TokenType::Limit,
+        TokenType::Matrix]){
             return Ok(AstExpr::Function {
                 name: self.previous().clone(),
             })
@@ -328,7 +329,6 @@ impl Parser {
         ]) {
             let operator = self.previous().clone();
             let right = self.comparison()?;
-
             expr = AstExpr::Binary {
                 left: Box::new(expr),
                 operator,

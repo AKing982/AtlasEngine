@@ -41,6 +41,7 @@ pub enum TokenType{
     Complex,
     Conjugate,
     Limit,
+    Matrix,
 
     Pi,
     I,

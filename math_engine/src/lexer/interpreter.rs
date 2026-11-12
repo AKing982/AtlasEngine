@@ -297,6 +297,9 @@ impl Interpreter {
                                 };
                                 Ok(Value::Complex(Complex::new(arg1_val, arg2_val)))
                             }
+                            TokenType::Matrix => {
+                                
+                            }
                             _ => {
                                 Err(RuntimeError::new(
                                     name,
