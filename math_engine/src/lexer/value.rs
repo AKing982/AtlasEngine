@@ -1,4 +1,5 @@
 use crate::complex::Complex;
+use crate::vector::Vector;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -8,4 +9,5 @@ pub enum Value {
     Boolean(bool),
     Nil,
     Complex(Complex),
+    Vector(Vector)
 }

@@ -221,7 +221,7 @@ impl Matrix {
     }
 
     pub(crate) fn is_square(&self) -> bool {
-        return self.rows == self.cols
+        self.rows == self.cols
     }
 
     pub(crate) fn transpose(&self) -> Self {
@@ -252,8 +252,6 @@ impl Matrix {
         }
         panic!("No implementation for transpose for dimensions n > 2 yet");
     }
-    
-    
     
     pub(crate) fn print_size(&self) {
         println!("({}, {})", self.rows, self.cols);

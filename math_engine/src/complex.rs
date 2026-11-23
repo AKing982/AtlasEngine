@@ -1,6 +1,6 @@
 #[derive(Clone, Debug, PartialEq)]
 pub struct Complex {
-    real: f64,
+    pub real: f64,
     imaginary: f64,
 }
 
@@ -23,7 +23,7 @@ impl Complex {
         }
     }
 
-    pub(crate) fn imaginary(&self) -> f64 {
+    pub fn imaginary(&self) -> f64 {
         self.imaginary
     }
 

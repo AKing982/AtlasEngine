@@ -1,13 +1,13 @@
 use crate::ast_expr::AstExpr;
 use crate::ast_stmt::AstStmt;
-use crate::complex;
+use crate::complex::Complex;
+use crate::environment::Environment;
 use crate::literal::Literal;
 use crate::runtime_error::RuntimeError;
 use crate::token::Token;
 use crate::token_type::TokenType;
 use crate::value::Value;
-use crate::environment::Environment;
-use crate::complex::Complex;
+use crate::vector::Vector;
 
 pub struct Interpreter{
     variable_map: Environment
@@ -21,7 +21,7 @@ impl Interpreter {
         }
     }
 
-    fn evaluate(&mut self, expr: &AstExpr) -> Result<Value, RuntimeError>{
+    pub fn evaluate(&mut self, expr: &AstExpr) -> Result<Value, RuntimeError>{
         match expr {
             AstExpr::Literal {value} => {
                 match value {
@@ -59,7 +59,10 @@ impl Interpreter {
                             Ok(Value::Number(*left_num - *right_num))
                         } else if let (Value::Complex(left_complex), Value::Complex(right_complex)) = (&left, &right) {
                             Ok(Value::Complex(left_complex.subtract(right_complex)))
-                        }else{
+                        } else if let (Value::Vector(left_vector), Value::Vector(right_vector)) = (&left, &right) {
+                            Ok(Value::Vector(left_vector.difference(right_vector)))
+                        }
+                        else{
                             Err(RuntimeError::new(
                                 operator,
                                 "Operands must be two numbers or two complex numbers",
@@ -79,7 +82,12 @@ impl Interpreter {
                             Ok(Value::Number(*left_num * *right_num))
                         }else if let (Value::Complex(left_complex), Value::Complex(right_complex)) = (&left, &right){
                             Ok(Value::Complex(left_complex.multiply(right_complex)))
-                        }else{
+                        }else if let (Value::Vector(left_vector), Value::Number(right_scalar)) = (&left, &right){
+                            Ok(Value::Vector(left_vector.scalar_multiply(*right_scalar)))
+                        }else if let (Value::Number(left_num), Value::Vector(right_vector)) = (&left, &right){
+                            Ok(Value::Vector(right_vector.scalar_multiply(*left_num)))
+                        }
+                        else{
                             Err(RuntimeError::new(
                                 operator,
                                 "Operands must be two numbers or two complex numbers",
@@ -96,6 +104,9 @@ impl Interpreter {
                             }
                             (Value::Complex(left_complex), Value::Complex(right_complex)) => {
                                 Ok(Value::Complex(Complex::add(left_complex, right_complex)))
+                            }
+                            (Value::Vector(left_vec), Value::Vector(right_vec)) => {
+                                Ok(Value::Vector(Vector::add(left_vec, right_vec)))
                             }
                             _ => {
                                 todo!()
@@ -297,8 +308,73 @@ impl Interpreter {
                                 };
                                 Ok(Value::Complex(Complex::new(arg1_val, arg2_val)))
                             }
-                            TokenType::Matrix => {
-                                
+                            TokenType::Vector => {
+                                if arguments.len() < 2 {
+                                    return Err(RuntimeError::new(name,
+                                    "Expected minimum 2 arguments"))
+                                }
+                                let mut components: Vec<f64> = Vec::new();
+                                for i in 0..arguments.len(){
+                                    let value = self.evaluate(&arguments[i])?;
+                                    let number = match value {
+                                        Value::Number(n) => n,
+                                        _ => {
+                                            return Err(RuntimeError::new(
+                                                name,
+                                                "Vector components must be numbers",
+                                            ));
+                                        }
+                                    };
+                                    components.push(number);
+                                }
+                                Ok(Value::Vector(Vector::new(components)))
+                            }
+                            TokenType::Norm => {
+                                if arguments.len() != 1 {
+                                    return Err(RuntimeError::new(
+                                        name,
+                                        "Expected one vector argument",
+                                    ))
+                                }
+                                let argument = self.evaluate(&arguments[0])?;
+                                let vector = match argument {
+                                    Value::Vector(v) => v,
+                                    _ => {
+                                        return Err(RuntimeError::new(
+                                            name,
+                                            "Norm result must be a number",
+                                        ));
+                                    }
+                                };
+                                Ok(Value::Number(vector.norm()))
+                            }
+                            TokenType::DotProduct => {
+                                if arguments.len() != 2 {
+                                    return Err(RuntimeError::new(
+                                        name,
+                                        "Expected two vector arguments",
+                                    ));
+                                }
+                                let left = self.evaluate(&arguments[0])?;
+                                let right = self.evaluate(&arguments[1])?;
+                                let (v1, v2) = match (left, right){
+                                    (Value::Vector(v1), Value::Vector(v2)) => {
+                                        (v1, v2)
+                                    }
+                                    _ => {
+                                        return Err(RuntimeError::new(
+                                            name,
+                                            "Both arguments must be vectors",
+                                        ));
+                                    }
+                                };
+                                if v1.dimension() != v2.dimension() {
+                                    return Err(RuntimeError::new(
+                                        name,
+                                        "Vector dimensions do not match",
+                                    ));
+                                }
+                                Ok(Value::Number(v1.dot(&v2)))
                             }
                             _ => {
                                 Err(RuntimeError::new(
@@ -380,6 +456,14 @@ impl Interpreter {
                 }
             }
             Value::String(s) => s.clone(),
+            Value::Vector(c) => {
+                let components = c.components()
+                    .iter()
+                    .map(|value| value.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ");
+                format!("({})", components)
+            }
         }
     }
 

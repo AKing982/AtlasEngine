@@ -1,6 +1,6 @@
 use crate::token::Token;
 use crate::literal::Literal;
-pub(crate) enum AstExpr {
+pub enum AstExpr {
     Binary {
         left: Box<AstExpr>,
         operator: Token,
@@ -29,5 +29,8 @@ pub(crate) enum AstExpr {
     },
     Function {
         name: Token,
+    },
+    List {
+        elements: Vec<AstExpr>,
     }
 }

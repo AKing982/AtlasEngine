@@ -6,6 +6,8 @@ mod derivative;
 mod matrix;
 mod summation;
 mod DefiniteIntegral;
+
+#[path="complex.rs"]
 mod complex;
 mod Antiderivative;
 

@@ -53,6 +53,17 @@ impl AstPrinter {
                     &[value.as_ref()],
                 )
             }
+            AstExpr::List { elements } => {
+                let mut builder = String::from("[");
+                for (i, element) in elements.iter().enumerate() {
+                    if i > 0 {
+                        builder.push_str(", ");
+                    }
+                    builder.push_str(&self.print(element));
+                }
+                builder.push_str("]");
+                builder
+            }
         }
     }
 

@@ -1,11 +1,15 @@
-#[derive(Debug)]
-pub(crate) struct Vector {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Vector {
     components: Vec<f64>,
 }
 
 impl Vector {
     pub fn dimension(&self) -> usize {
         self.components.len()
+    }
+
+    pub fn components(&self) -> &Vec<f64> {
+        &self.components
     }
 
     pub fn new(components: Vec<f64>) -> Self {

@@ -4,7 +4,7 @@ use crate::token_type::TokenType;
 use crate::token::Token;
 use crate::literal::Literal;
 
-pub(crate) struct Scanner {
+pub struct Scanner {
     source: String,
     tokens: Vec<Token>,
     start: usize,
@@ -46,6 +46,9 @@ impl Scanner {
         keywords.insert("conjugate".to_string(), TokenType::Conjugate);
         keywords.insert("limit".to_string(), TokenType::Limit);
         keywords.insert("matrix".to_string(), TokenType::Matrix);
+        keywords.insert("vector".to_string(), TokenType::Vector);
+        keywords.insert("dot".to_string(), TokenType::DotProduct);
+        keywords.insert("norm".to_string(), TokenType::Norm);
         keywords.insert("i".to_string(), TokenType::I);
         keywords.insert("pi".to_string(), TokenType::Pi);
         keywords.insert("e".to_string(), TokenType::E);
@@ -116,6 +119,8 @@ impl Scanner {
             '^' => self.add_token(TokenType::Caret),
             '(' => self.add_token(TokenType::LeftParen),
             ')' => self.add_token(TokenType::RightParen),
+            '[' => self.add_token(TokenType::LeftBracket),
+            ']' => self.add_token(TokenType::RightBracket),
             '=' => {
                 let token_type = if self.match_char('=') {
                     TokenType::EqualEqual

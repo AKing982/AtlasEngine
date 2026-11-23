@@ -13,7 +13,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub(crate) fn new(tokens: Vec<Token>) -> Self {
+    pub fn new(tokens: Vec<Token>) -> Self {
         Self {
             tokens,
             current: 0,
@@ -54,7 +54,7 @@ impl Parser {
         })
     }
 
-    fn power(&mut self) -> Result<AstExpr, ParseError>{
+    pub fn power(&mut self) -> Result<AstExpr, ParseError>{
         let mut expression = self.call()?;
         if self.match_token(&[TokenType::Caret]){
             let operator = self.previous().clone();
@@ -68,7 +68,7 @@ impl Parser {
         Ok(expression)
     }
 
-    fn expression(&mut self) -> Result<AstExpr, ParseError> {
+    pub fn expression(&mut self) -> Result<AstExpr, ParseError> {
         self.assignment()
     }
 
@@ -109,7 +109,7 @@ impl Parser {
         self.peek().token_type == TokenType::Eof
     }
 
-    fn primary(&mut self) -> Result<AstExpr, ParseError> {
+    pub fn primary(&mut self) -> Result<AstExpr, ParseError> {
         if self.match_token(&[TokenType::False]) {
             return Ok(AstExpr::Literal {
                 value: Literal::Boolean(false),
@@ -128,14 +128,20 @@ impl Parser {
             });
         }
 
+        if self.match_token(&[TokenType::LeftBracket]){
+            let mut elements: Vec<AstExpr> = Vec::new();
+            if !self.match_token(&[TokenType::RightBracket]) {
+                
+            }
+
+        }
+
         if self.match_token(&[TokenType::LeftParen]) {
             let expr = self.expression()?;
-
             self.consume(
                 TokenType::RightParen,
                 "Expect ')' after expression.",
             )?;
-
             return Ok(AstExpr::Grouping {
                 expression: Box::new(expr),
             });
@@ -159,7 +165,7 @@ impl Parser {
         if self.match_token(&[TokenType::Exp,
         TokenType::Sin, TokenType::Cos, TokenType::Tan, TokenType::Ln, TokenType::Log,
         TokenType::Sqrt, TokenType::Complex, TokenType::Conjugate, TokenType::Limit,
-        TokenType::Matrix]){
+        TokenType::Matrix, TokenType::Vector, TokenType::DotProduct, TokenType::Norm]){
             return Ok(AstExpr::Function {
                 name: self.previous().clone(),
             })
@@ -182,7 +188,7 @@ impl Parser {
         Err(self.error(self.peek(), "Expect expression."))
     }
 
-    fn assignment(&mut self) -> Result<AstExpr, ParseError>{
+    pub fn assignment(&mut self) -> Result<AstExpr, ParseError>{
         let mut expr = self.equality()?;
         if self.match_token(&[TokenType::Equal]){
             let value = self.assignment()?;
@@ -200,7 +206,7 @@ impl Parser {
         Ok(expr)
     }
 
-    fn call(&mut self) -> Result<AstExpr, ParseError>{
+    pub fn call(&mut self) -> Result<AstExpr, ParseError>{
         let mut expr = self.primary()?;
         if self.match_token(&[TokenType::LeftParen]){
            let mut arguments = Vec::new();
@@ -229,7 +235,7 @@ impl Parser {
         self.peek().token_type == *token_type
     }
 
-    pub(crate) fn parse(&mut self) -> Result<Vec<AstStmt>, ParseError> {
+    pub fn parse(&mut self) -> Result<Vec<AstStmt>, ParseError> {
         let mut statements = Vec::new();
         while !self.is_at_end(){
             statements.push(self.declaration()?);

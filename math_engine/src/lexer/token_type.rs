@@ -1,5 +1,5 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TokenType{
+pub enum TokenType {
     Plus,
     Minus,
     Star,
@@ -18,7 +18,9 @@ pub enum TokenType{
     Greater,
     GreaterEqual,
     LeftParen,
+    LeftBracket,
     RightParen,
+    RightBracket,
     Nil,
 
     // Keywords
@@ -42,6 +44,9 @@ pub enum TokenType{
     Conjugate,
     Limit,
     Matrix,
+    Norm,
+    Vector,
+    DotProduct,
 
     Pi,
     I,
