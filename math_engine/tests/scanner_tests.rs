@@ -363,7 +363,6 @@ mod tests{
     #[test]
     fn test_vector_scalar_multiplication_tokens() {
         let tokens = scan("vector(1,2,3) * 2;");
-
         assert_eq!(tokens, vec![
             TokenType::Vector,
             TokenType::LeftParen,
@@ -383,7 +382,6 @@ mod tests{
     #[test]
     fn test_scalar_vector_multiplication_tokens() {
         let tokens = scan("2 * vector(1,2,3);");
-
         assert_eq!(tokens, vec![
             TokenType::Number,
             TokenType::Star,
@@ -434,7 +432,6 @@ mod tests{
     #[test]
     fn test_norm_tokens() {
         let tokens = scan("norm(vector(1,2,3));");
-
         assert_eq!(tokens, vec![
             TokenType::Norm,
             TokenType::LeftParen,
@@ -455,7 +452,6 @@ mod tests{
     #[test]
     fn test_norm_variable_tokens() {
         let tokens = scan("norm(v);");
-
         assert_eq!(tokens, vec![
             TokenType::Norm,
             TokenType::LeftParen,
@@ -469,7 +465,6 @@ mod tests{
     #[test]
     fn test_norm_arithmetic_tokens() {
         let tokens = scan("norm(vector(3,4)) + 2;");
-
         assert_eq!(tokens, vec![
             TokenType::Norm,
             TokenType::LeftParen,
@@ -490,7 +485,6 @@ mod tests{
     #[test]
     fn test_matrix_tokens() {
         let tokens = scan("matrix([1,2,3],[4,5,6],[7,8,9]);");
-
         assert_eq!(tokens, vec![
             TokenType::Matrix,
             TokenType::LeftParen,
@@ -533,7 +527,6 @@ mod tests{
     #[test]
     fn test_dimension_vector_tokens() {
         let tokens = scan("dim(vector(1,2,3));");
-
         assert_eq!(tokens, vec![
             TokenType::Dimension,
             TokenType::LeftParen,
@@ -554,7 +547,6 @@ mod tests{
     #[test]
     fn test_dimension_variable_tokens() {
         let tokens = scan("dim(v);");
-
         assert_eq!(tokens, vec![
             TokenType::Dimension,
             TokenType::LeftParen,
@@ -568,7 +560,6 @@ mod tests{
     #[test]
     fn test_dimension_arithmetic_tokens() {
         let tokens = scan("dim(v) + 2;");
-
         assert_eq!(tokens, vec![
             TokenType::Dimension,
             TokenType::LeftParen,
@@ -584,7 +575,6 @@ mod tests{
     #[test]
     fn test_dimension_vector_addition_tokens() {
         let tokens = scan("dim(vector(1,2) + vector(3,4));");
-
         assert_eq!(tokens, vec![
             TokenType::Dimension,
             TokenType::LeftParen,
@@ -614,12 +604,260 @@ mod tests{
     #[test]
     fn test_dimension_empty_arguments_tokens() {
         let tokens = scan("dim();");
-
         assert_eq!(tokens, vec![
             TokenType::Dimension,
             TokenType::LeftParen,
             TokenType::RightParen,
             TokenType::SemiColon,
+            TokenType::Eof,
+        ]);
+    }
+
+    #[test]
+    fn test_matrix_multiplication_tokens() {
+        let tokens = scan(
+            "matrix([1,2,3],[4,5,6],[0,0,1]) * \
+         matrix([1,1,1],[0,1,1],[2,2,3])"
+        );
+
+        assert_eq!(tokens, vec![
+            // First matrix
+            TokenType::Matrix,
+            TokenType::LeftParen,
+
+            // Row 1
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 2
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 3
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::RightParen,
+
+            // Addition operator
+            TokenType::Star,
+
+            // Second matrix
+            TokenType::Matrix,
+            TokenType::LeftParen,
+
+            // Row 1
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 2
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 3
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::RightParen,
+
+            TokenType::Eof,
+        ]);
+    }
+
+    #[test]
+    fn test_matrix_subtraction_tokens() {
+        let tokens = scan(
+            "matrix([1,2,3],[4,5,6],[0,0,1]) - \
+         matrix([1,1,1],[0,1,1],[2,2,3])"
+        );
+
+        assert_eq!(tokens, vec![
+            // First matrix
+            TokenType::Matrix,
+            TokenType::LeftParen,
+
+            // Row 1
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 2
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 3
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::RightParen,
+
+            // Addition operator
+            TokenType::Minus,
+
+            // Second matrix
+            TokenType::Matrix,
+            TokenType::LeftParen,
+
+            // Row 1
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 2
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 3
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::RightParen,
+
+            TokenType::Eof,
+        ]);
+    }
+
+    #[test]
+    fn test_matrix_addition_tokens() {
+        let tokens = scan(
+            "matrix([1,2,3],[4,5,6],[0,0,1]) + \
+         matrix([1,1,1],[0,1,1],[2,2,3])"
+        );
+
+        assert_eq!(tokens, vec![
+            // First matrix
+            TokenType::Matrix,
+            TokenType::LeftParen,
+
+            // Row 1
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 2
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 3
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::RightParen,
+
+            // Addition operator
+            TokenType::Plus,
+
+            // Second matrix
+            TokenType::Matrix,
+            TokenType::LeftParen,
+
+            // Row 1
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 2
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::Comma,
+
+            // Row 3
+            TokenType::LeftBracket,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightBracket,
+            TokenType::RightParen,
+
             TokenType::Eof,
         ]);
     }
@@ -632,6 +870,4 @@ mod tests{
             .map(|token| token.token_type.clone())
         .collect()
     }
-
-
 }
