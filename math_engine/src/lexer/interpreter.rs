@@ -533,21 +533,25 @@ impl Interpreter {
             Value::Matrix(m) => {
                 let rows = m.rows();
                 let cols = m.cols();
-                let mut builder = String::from("");
+
+                let mut builder = String::from("[");
                 for i in 0..rows {
                     builder.push('[');
                     for j in 0..cols {
                         builder.push_str(&m.get(i, j).to_string());
-                        if j < cols - i {
+
+                        if j < cols - 1 {
                             builder.push_str(", ");
                         }
                     }
-                    builder.push_str("]");
+                    builder.push(']');
+
                     if i < rows - 1 {
-                        builder.push_str(",\n");
+                        builder.push_str(",\n ");
                     }
                 }
-                builder.push_str("]");
+
+                builder.push(']');
                 builder
             }
         }
