@@ -388,9 +388,7 @@ mod tests {
         let mut parser = create_parser(
             "2 * vector(1,2,3)".to_string()
         );
-
         let expr = parser.expression().unwrap();
-
         match expr {
             AstExpr::Binary {
                 left,
@@ -420,9 +418,7 @@ mod tests {
         let mut parser = create_parser(
             "norm(vector(1,2,3))".to_string()
         );
-
         let expr = parser.expression().unwrap();
-
         match expr {
             AstExpr::Call { callee, arguments } => {
                 assert!(matches!(
@@ -430,9 +426,7 @@ mod tests {
                 AstExpr::Function { name }
                     if name.token_type == TokenType::Norm
             ));
-
                 assert_eq!(arguments.len(), 1);
-
                 assert!(matches!(
                 &arguments[0],
                 AstExpr::Call {
@@ -454,9 +448,7 @@ mod tests {
         let mut parser = create_parser(
             "conjugate(complex(2,3))".to_string()
         );
-
         let expr = parser.expression().unwrap();
-
         match expr {
             AstExpr::Call { callee, arguments } => {
                 assert!(matches!(
@@ -464,9 +456,7 @@ mod tests {
                 AstExpr::Function { name }
                     if name.token_type == TokenType::Conjugate
             ));
-
                 assert_eq!(arguments.len(), 1);
-
                 assert!(matches!(
                 &arguments[0],
                 AstExpr::Call { arguments, .. }
@@ -491,9 +481,7 @@ mod tests {
                 AstExpr::Function { name }
                     if name.token_type == TokenType::DotProduct
             ));
-
                 assert_eq!(arguments.len(), 2);
-
                 for argument in &arguments {
                     assert!(matches!(
                     argument,
@@ -563,6 +551,187 @@ mod tests {
             }
             _ => panic!("Expected matrix function call"),
         }
+    }
+
+    #[test]
+    fn test_dimension_vector_call(){
+        let mut parser = create_parser("dim(vector(1,2,3))".to_string());
+        let expr = parser.expression().unwrap();
+        match expr{
+            AstExpr::Call { callee, arguments } => {
+                assert!(matches!(
+                    callee.as_ref(),
+                    AstExpr::Function { name }
+                        if name.token_type == TokenType::Dimension
+                ));
+                assert_eq!(arguments.len(), 1);
+                assert!(matches!(
+                    &arguments[0],
+                    AstExpr::Call {callee, arguments}
+                    if matches!(
+                        callee.as_ref(),
+                        AstExpr::Function { name }
+                        if name.token_type == TokenType::Vector
+                    ) && arguments.len() == 3
+                ));
+            }
+            _ => panic!("Expected dimension vector call"),
+        }
+    }
+
+    #[test]
+    fn test_dimension_vector_addition_call() {
+        let mut parser = create_parser(
+            "dim(vector(1,2,3) + vector(4,5,6))".to_string()
+        );
+
+        let expr = parser.expression().unwrap();
+
+        match expr {
+            AstExpr::Call { callee, arguments } => {
+                assert!(matches!(
+                callee.as_ref(),
+                AstExpr::Function { name }
+                    if name.token_type == TokenType::Dimension
+            ));
+
+                assert_eq!(arguments.len(), 1);
+
+                assert!(matches!(
+                &arguments[0],
+                AstExpr::Binary { operator, .. }
+                    if operator.token_type == TokenType::Plus
+            ));
+            }
+            _ => panic!("Expected dimension function call"),
+        }
+    }
+
+    #[test]
+    fn test_dimension_vector_subtraction_call() {
+        let mut parser = create_parser(
+            "dim(vector(1,2,3) - vector(4,5,6))".to_string()
+        );
+
+        let expr = parser.expression().unwrap();
+
+        match expr {
+            AstExpr::Call { arguments, .. } => {
+                assert_eq!(arguments.len(), 1);
+
+                assert!(matches!(
+                &arguments[0],
+                AstExpr::Binary { operator, .. }
+                    if operator.token_type == TokenType::Minus
+            ));
+            }
+            _ => panic!("Expected function call"),
+        }
+    }
+
+    #[test]
+    fn test_dimension_scalar_multiplication_call() {
+        let mut parser = create_parser(
+            "dim(2 * vector(1,2,3))".to_string()
+        );
+
+        let expr = parser.expression().unwrap();
+
+        match expr {
+            AstExpr::Call { arguments, .. } => {
+                assert_eq!(arguments.len(), 1);
+
+                assert!(matches!(
+                &arguments[0],
+                AstExpr::Binary { operator, .. }
+                    if operator.token_type == TokenType::Star
+            ));
+            }
+            _ => panic!("Expected function call"),
+        }
+    }
+
+    #[test]
+    fn test_dimension_arithmetic_expression() {
+        let mut parser = create_parser(
+            "dim(vector(1,2,3)) + 5".to_string()
+        );
+        let expr = parser.expression().unwrap();
+        match expr {
+            AstExpr::Binary {
+                left,
+                operator,
+                right,
+            } => {
+                assert_eq!(operator.token_type, TokenType::Plus);
+
+                assert!(matches!(
+                left.as_ref(),
+                AstExpr::Call { callee, arguments }
+                    if matches!(
+                        callee.as_ref(),
+                        AstExpr::Function { name }
+                            if name.token_type == TokenType::Dimension
+                    ) && arguments.len() == 1
+            ));
+
+                assert!(matches!(
+                right.as_ref(),
+                AstExpr::Literal {
+                    value: Literal::Number(n)
+                } if *n == 5.0
+            ));
+            }
+            _ => panic!("Expected binary expression"),
+        }
+    }
+
+    #[test]
+    fn test_dimension_empty_call() {
+        let mut parser = create_parser("dim()".to_string());
+        let expr = parser.expression().unwrap();
+
+        match expr {
+            AstExpr::Call { callee, arguments } => {
+                assert!(matches!(
+                callee.as_ref(),
+                AstExpr::Function { name }
+                    if name.token_type == TokenType::Dimension
+            ));
+
+                assert!(arguments.is_empty());
+            }
+            _ => panic!("Expected dimension function call"),
+        }
+    }
+
+    #[test]
+    fn test_dimension_number_call() {
+        let mut parser = create_parser("dim(5)".to_string());
+        let expr = parser.expression().unwrap();
+
+        match expr {
+            AstExpr::Call { arguments, .. } => {
+                assert_eq!(arguments.len(), 1);
+
+                assert!(matches!(
+                &arguments[0],
+                AstExpr::Literal {
+                    value: Literal::Number(n)
+                } if *n == 5.0
+            ));
+            }
+            _ => panic!("Expected function call"),
+        }
+    }
+
+    #[test]
+    fn test_dimension_missing_parenthesis() {
+        let mut parser = create_parser(
+            "dim(vector(1,2,3)".to_string()
+        );
+
+        assert!(parser.expression().is_err());
     }
 
 

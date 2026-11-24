@@ -49,6 +49,7 @@ impl Scanner {
         keywords.insert("vector".to_string(), TokenType::Vector);
         keywords.insert("dot".to_string(), TokenType::DotProduct);
         keywords.insert("norm".to_string(), TokenType::Norm);
+        keywords.insert("dim".to_string(), TokenType::Dimension);
         keywords.insert("i".to_string(), TokenType::I);
         keywords.insert("pi".to_string(), TokenType::Pi);
         keywords.insert("e".to_string(), TokenType::E);

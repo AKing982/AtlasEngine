@@ -3,6 +3,7 @@ use crate::ast_stmt::AstStmt;
 use crate::complex::Complex;
 use crate::environment::Environment;
 use crate::literal::Literal;
+use crate::matrix::Matrix;
 use crate::runtime_error::RuntimeError;
 use crate::token::Token;
 use crate::token_type::TokenType;
@@ -237,16 +238,12 @@ impl Interpreter {
 
                                 // Evaluate the approach value.
                                 let arg_lim = self.evaluate(&arguments[2])?;
-
                                 // Save the previous value.
                                 let previous_var = self.variable_map.get(&variable_name).cloned();
-
                                 // Temporarily define the variable.
                                 self.variable_map.define(variable_name.clone(), arg_lim);
-
                                 // Evaluate the expression.
                                 let result = self.evaluate(arg_expr);
-
                                 // Restore the environment.
                                 match previous_var {
                                     Some(value) => {
@@ -256,7 +253,6 @@ impl Interpreter {
                                         self.variable_map.remove(&variable_name);
                                     }
                                 }
-
                                 result
                             }
                             TokenType::Conjugate => {
@@ -329,6 +325,44 @@ impl Interpreter {
                                 }
                                 Ok(Value::Vector(Vector::new(components)))
                             }
+                            TokenType::Matrix => {
+                                if arguments.is_empty() {
+                                    return Err(RuntimeError::new(name,
+                                    "Expected at least one row matrix"))
+                                }
+                                let mut matrix: Vec<Vec<f64>> = Vec::new();
+                                for argument in arguments.iter(){
+                                    match argument {
+                                        AstExpr::List {elements} => {
+                                            let mut row: Vec<f64> = Vec::new();
+                                            for element in elements.iter(){
+                                                let value = self.evaluate(&element)?;
+                                                let number = match value {
+                                                    Value::Number(n) => n,
+                                                    _ => {
+                                                        return Err(RuntimeError::new(
+                                                            name,
+                                                            "Vector components must be numbers",
+                                                        ))
+                                                    }
+                                                };
+                                                row.push(number);
+                                            }
+                                            matrix.push(row);
+                                        }
+                                        _ => {
+                                            return Err(RuntimeError::new(
+                                                name,
+                                                "Matrix arguments must be lists",
+                                            ));
+                                        }
+                                    }
+                                }
+                                let result = Matrix::from_rows(matrix)
+                                    .map_err(|message| RuntimeError::new(name, &message))?;
+
+                                Ok(Value::Matrix(result))
+                            }
                             TokenType::Norm => {
                                 if arguments.len() != 1 {
                                     return Err(RuntimeError::new(
@@ -347,6 +381,38 @@ impl Interpreter {
                                     }
                                 };
                                 Ok(Value::Number(vector.norm()))
+                            }
+                            TokenType::Dimension => {
+                                if arguments.len() != 1 {
+                                    return Err(RuntimeError::new(
+                                        name,
+                                        "Expected exactly one argument",
+                                    ));
+                                }
+
+                                let arg1 = self.evaluate(&arguments[0])?;
+
+                                match arg1 {
+                                    Value::Vector(v) => {
+                                        Ok(Value::Number(v.dimension() as f64))
+                                    }
+
+                                    Value::Matrix(m) => {
+                                        let (rows, cols) = m.size();
+
+                                        Ok(Value::Vector(Vector::new(vec![
+                                            rows as f64,
+                                            cols as f64,
+                                        ])))
+                                    }
+
+                                    _ => {
+                                        Err(RuntimeError::new(
+                                            name,
+                                            "Dimension argument must be a vector or matrix",
+                                        ))
+                                    }
+                                }
                             }
                             TokenType::DotProduct => {
                                 if arguments.len() != 2 {
@@ -463,6 +529,26 @@ impl Interpreter {
                     .collect::<Vec<String>>()
                     .join(", ");
                 format!("({})", components)
+            }
+            Value::Matrix(m) => {
+                let rows = m.rows();
+                let cols = m.cols();
+                let mut builder = String::from("");
+                for i in 0..rows {
+                    builder.push('[');
+                    for j in 0..cols {
+                        builder.push_str(&m.get(i, j).to_string());
+                        if j < cols - i {
+                            builder.push_str(", ");
+                        }
+                    }
+                    builder.push_str("]");
+                    if i < rows - 1 {
+                        builder.push_str(",\n");
+                    }
+                }
+                builder.push_str("]");
+                builder
             }
         }
     }

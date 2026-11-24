@@ -530,6 +530,100 @@ mod tests{
         ]);
     }
 
+    #[test]
+    fn test_dimension_vector_tokens() {
+        let tokens = scan("dim(vector(1,2,3));");
+
+        assert_eq!(tokens, vec![
+            TokenType::Dimension,
+            TokenType::LeftParen,
+            TokenType::Vector,
+            TokenType::LeftParen,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightParen,
+            TokenType::RightParen,
+            TokenType::SemiColon,
+            TokenType::Eof,
+        ]);
+    }
+
+    #[test]
+    fn test_dimension_variable_tokens() {
+        let tokens = scan("dim(v);");
+
+        assert_eq!(tokens, vec![
+            TokenType::Dimension,
+            TokenType::LeftParen,
+            TokenType::Identifier,
+            TokenType::RightParen,
+            TokenType::SemiColon,
+            TokenType::Eof,
+        ]);
+    }
+
+    #[test]
+    fn test_dimension_arithmetic_tokens() {
+        let tokens = scan("dim(v) + 2;");
+
+        assert_eq!(tokens, vec![
+            TokenType::Dimension,
+            TokenType::LeftParen,
+            TokenType::Identifier,
+            TokenType::RightParen,
+            TokenType::Plus,
+            TokenType::Number,
+            TokenType::SemiColon,
+            TokenType::Eof,
+        ]);
+    }
+
+    #[test]
+    fn test_dimension_vector_addition_tokens() {
+        let tokens = scan("dim(vector(1,2) + vector(3,4));");
+
+        assert_eq!(tokens, vec![
+            TokenType::Dimension,
+            TokenType::LeftParen,
+
+            TokenType::Vector,
+            TokenType::LeftParen,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightParen,
+
+            TokenType::Plus,
+
+            TokenType::Vector,
+            TokenType::LeftParen,
+            TokenType::Number,
+            TokenType::Comma,
+            TokenType::Number,
+            TokenType::RightParen,
+
+            TokenType::RightParen,
+            TokenType::SemiColon,
+            TokenType::Eof,
+        ]);
+    }
+
+    #[test]
+    fn test_dimension_empty_arguments_tokens() {
+        let tokens = scan("dim();");
+
+        assert_eq!(tokens, vec![
+            TokenType::Dimension,
+            TokenType::LeftParen,
+            TokenType::RightParen,
+            TokenType::SemiColon,
+            TokenType::Eof,
+        ]);
+    }
+
     fn scan(source: &str) -> Vec<TokenType> {
         let mut scanner = Scanner::new(source.to_string());
         scanner

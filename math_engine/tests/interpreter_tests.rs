@@ -320,6 +320,198 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_matrix_creation_3x3() {
+        let result = evaluate_source(
+            "matrix([1,2,3],[4,5,6],[7,8,9]);"
+        ).unwrap();
+
+        match result {
+            Value::Matrix(m) => {
+                assert_eq!(m.rows(), 3);
+                assert_eq!(m.cols(), 3);
+
+                assert_eq!(
+                    m.components(),
+                    &[
+                        vec![1.0, 2.0, 3.0],
+                        vec![4.0, 5.0, 6.0],
+                        vec![7.0, 8.0, 9.0],
+                    ]
+                );
+            }
+            _ => panic!("Expected matrix"),
+        }
+    }
+
+    #[test]
+    fn test_matrix_creation_rectangular() {
+        let result = evaluate_source(
+            "matrix([1,2,3],[4,5,6]);"
+        ).unwrap();
+
+        match result {
+            Value::Matrix(m) => {
+                assert_eq!(m.rows(), 2);
+                assert_eq!(m.cols(), 3);
+            }
+            _ => panic!("Expected matrix"),
+        }
+    }
+
+    #[test]
+    fn test_matrix_single_row() {
+        let result = evaluate_source(
+            "matrix([1,2,3]);"
+        ).unwrap();
+
+        match result {
+            Value::Matrix(m) => {
+                assert_eq!(m.rows(), 1);
+                assert_eq!(m.cols(), 3);
+            }
+            _ => panic!("Expected matrix"),
+        }
+    }
+
+    #[test]
+    fn test_matrix_single_column() {
+        let result = evaluate_source(
+            "matrix([1],[2],[3]);"
+        ).unwrap();
+
+        match result {
+            Value::Matrix(m) => {
+                assert_eq!(m.rows(), 3);
+                assert_eq!(m.cols(), 1);
+            }
+            _ => panic!("Expected matrix"),
+        }
+    }
+
+    #[test]
+    fn test_matrix_expression_elements() {
+        let result = evaluate_source(
+            "matrix([1+2,3*4],[2^3,sqrt(81)]);"
+        ).unwrap();
+
+        match result {
+            Value::Matrix(m) => {
+                assert_eq!(
+                    m.components(),
+                    &[
+                        vec![3.0, 12.0],
+                        vec![8.0, 9.0],
+                    ]
+                );
+            }
+            _ => panic!("Expected matrix"),
+        }
+    }
+
+    #[test]
+    fn test_matrix_unequal_row_lengths() {
+        let result = evaluate_source(
+            "matrix([1,2,3],[4,5]);"
+        );
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_dimension_vector_2d() {
+        let result = evaluate_source("dim(vector(1,2));").unwrap();
+
+        assert_number_close(result, 2.0);
+    }
+
+    #[test]
+    fn test_dimension_vector_3d() {
+        let result = evaluate_source("dim(vector(1,2,3));").unwrap();
+
+        assert_number_close(result, 3.0);
+    }
+    #[test]
+    fn test_dimension_vector_10d() {
+        let result = evaluate_source(
+            "dim(vector(1,2,3,4,5,6,7,8,9,10));"
+        ).unwrap();
+
+        assert_number_close(result, 10.0);
+    }
+
+    #[test]
+    fn test_dimension_zero_vector() {
+        let result = evaluate_source(
+            "dim(vector(0,0,0));"
+        ).unwrap();
+
+        assert_number_close(result, 3.0);
+    }
+
+    #[test]
+    fn test_dimension_negative_components() {
+        let result = evaluate_source(
+            "dim(vector(-1,-2,-3,-4));"
+        ).unwrap();
+
+        assert_number_close(result, 4.0);
+    }
+
+    #[test]
+    fn test_dimension_vector_addition() {
+        let result = evaluate_source(
+            "dim(vector(1,2,3) + vector(4,5,6));"
+        ).unwrap();
+
+        assert_number_close(result, 3.0);
+    }
+
+    #[test]
+    fn test_dimension_vector_subtraction() {
+        let result = evaluate_source(
+            "dim(vector(1,2,3) - vector(4,5,6));"
+        ).unwrap();
+
+        assert_number_close(result, 3.0);
+    }
+
+    #[test]
+    fn test_dimension_vector_scalar_multiplication() {
+        let result = evaluate_source(
+            "dim(vector(1,2,3) * 5);"
+        ).unwrap();
+
+        assert_number_close(result, 3.0);
+    }
+
+    #[test]
+    fn test_dimension_vector_zero_scalar() {
+        let result = evaluate_source(
+            "dim(vector(1,2,3) * 0);"
+        ).unwrap();
+
+        assert_number_close(result, 3.0);
+    }
+
+    #[test]
+    fn test_dimension_arithmetic() {
+        let result = evaluate_source(
+            "dim(vector(1,2,3)) + 5;"
+        ).unwrap();
+
+        assert_number_close(result, 8.0);
+    }
+
+    #[test]
+    fn test_dimension_vector_expressions() {
+        let result = evaluate_source(
+            "dim(vector(1+2, 3*4, sin(pi), 2^3));"
+        ).unwrap();
+
+        assert_number_close(result, 4.0);
+    }
+
     fn assert_complex_close(actual: Value, expected_real: f64, expected_imaginary: f64){
         match actual {
             Value::Complex(c) => {

@@ -130,10 +130,16 @@ impl Parser {
 
         if self.match_token(&[TokenType::LeftBracket]){
             let mut elements: Vec<AstExpr> = Vec::new();
-            if !self.match_token(&[TokenType::RightBracket]) {
-                
+            if !self.check(&TokenType::RightBracket) {
+                loop {
+                    elements.push(self.expression()?);
+                    if !self.match_token(&[TokenType::Comma]) {
+                        break;
+                    }
+                }
             }
-
+            self.consume(TokenType::RightBracket, "Expect ']' after list elements.")?;
+            return Ok(AstExpr::List {elements});
         }
 
         if self.match_token(&[TokenType::LeftParen]) {
@@ -165,7 +171,7 @@ impl Parser {
         if self.match_token(&[TokenType::Exp,
         TokenType::Sin, TokenType::Cos, TokenType::Tan, TokenType::Ln, TokenType::Log,
         TokenType::Sqrt, TokenType::Complex, TokenType::Conjugate, TokenType::Limit,
-        TokenType::Matrix, TokenType::Vector, TokenType::DotProduct, TokenType::Norm]){
+        TokenType::Matrix, TokenType::Vector, TokenType::DotProduct, TokenType::Norm, TokenType::Dimension]){
             return Ok(AstExpr::Function {
                 name: self.previous().clone(),
             })

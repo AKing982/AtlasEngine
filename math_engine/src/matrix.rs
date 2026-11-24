@@ -1,7 +1,7 @@
 use crate::vector::Vector;
 
-#[derive(Debug, Clone)]
-struct Matrix {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Matrix {
     rows: usize,
     cols: usize,
     matrix: Vec<Vec<f64>>,
@@ -17,16 +17,39 @@ impl Matrix {
         }
     }
 
+    pub fn components(&self) -> &[Vec<f64>] {
+        &self.matrix
+    }
+
+    pub fn from_rows(matrix: Vec<Vec<f64>>) -> Result<Self, String> {
+        if matrix.is_empty(){
+            return Err("Matrix must contain at least one row".to_string());
+        }
+        let rows = matrix.len();
+        let cols = matrix[0].len();
+        if cols == 0 {
+            return Err("Matrix must contain at least one column".to_string());
+        }
+        if matrix.iter().any(|row| row.len() != cols){
+            return Err("Matrix must contain all columns".to_string());
+        }
+        Ok(Self {
+            rows,
+            cols,
+            matrix
+        })
+    }
+
     pub(crate) fn get(&self, row: usize, col: usize) -> f64 {
         self.matrix[row][col]
     }
 
-    pub(crate) fn rows(&self) -> usize
+    pub fn rows(&self) -> usize
     {
         self.matrix.len()
     }
 
-    pub(crate) fn cols(&self) -> usize {
+    pub fn cols(&self) -> usize {
         self.matrix.first().map_or(0, |r| r.len())
     }
 

@@ -47,6 +47,7 @@ pub enum TokenType {
     Norm,
     Vector,
     DotProduct,
+    Dimension,
 
     Pi,
     I,

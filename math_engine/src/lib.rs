@@ -12,6 +12,9 @@ pub mod token;
 #[path = "vector.rs"]
 pub mod vector;
 
+#[path = "matrix.rs"]
+pub mod matrix;
+
 #[path = "lexer/value.rs"]
 pub mod value;
 
